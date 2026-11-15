@@ -148,7 +148,7 @@ function cat_url(array $base, array $extra): string {
         <p>Create and manage item categories for your inventory.</p>
       </div>
       <div class="top-right">
-        <div class="bell"><?= icon('bell', 22) ?></div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
