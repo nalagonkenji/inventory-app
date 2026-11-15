@@ -57,10 +57,7 @@ $lowOrOut = (int)$totals['low'] + (int)$totals['outc'];
         <p>Overview of your inventory and stock.</p>
       </div>
       <div class="top-right">
-        <div class="bell" title="<?= $lowOrOut ?> items need attention">
-          <?= icon('bell', 22) ?>
-          <?php if ($lowOrOut > 0): ?><span class="dot"><?= $lowOrOut ?></span><?php endif; ?>
-        </div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
