@@ -48,6 +48,9 @@ function run_query(mysqli $conn, string $sql, string $types = '', array $params 
 // Feather-style line icons (MIT licensed paths).
 function icon(string $name, int $size = 18): string {
     static $paths = [
+        'arrowup'  => 'M12 19V5M5 12l7-7 7 7',
+        'arrowdown'=> 'M12 5v14M19 12l-7 7-7-7',
+        'adjust'   => 'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',
         'home'     => 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
         'monitor'  => 'M2 4h20v12H2zM8 20h8M12 16v4',
         'box'      => 'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
@@ -96,7 +99,7 @@ function render_sidebar(string $active): void {
         . '<nav class="nav">'
         . nav_link($active, 'dashboard', 'dashboard.php', 'Dashboard', 'home')
         . nav_link($active, 'inventory', 'index.php', 'Inventory', 'layers')
-        . nav_soon('Transactions', 'transfer')
+        . nav_link($active, 'transactions', 'transactions.php', 'Transactions', 'transfer')
         . nav_soon('Suppliers', 'truck')
         . nav_soon('Reports', 'chart')
         . '</nav>'
