@@ -150,12 +150,81 @@ function notification_total(): int {
     return $total;
 }
 
-// Header bell: clickable link to the Notifications page, with a count dot when there is something to see.
+// Bell panel: a section builder, then one list builder per section.
+function notif_section(string $title, string $key, string $default, callable $build): string {
+    $body = app_setting($key, $default) === '1' ? $build() : '<li class="n-empty">Turned off in Settings.</li>';
+    return '<div class="n-title">' . e($title) . '</div><ul class="n-list">' . $body . '</ul>';
+}
+
+function notif_low_list(): string {
+    global $conn;
+    $rows = run_query($conn, "SELECT name, quantity FROM parts WHERE quantity <= ? ORDER BY quantity, name LIMIT 20", "i", [LOW_STOCK])->fetch_all(MYSQLI_ASSOC);
+    if (!$rows) return '<li class="n-empty">Nothing is low on stock.</li>';
+    $html = '';
+    foreach ($rows as $r) {
+        $html .= '<li><span>' . e($r['name']) . '</span><b>' . (int)$r['quantity'] . ' left</b></li>';
+    }
+    return $html;
+}
+
+function notif_movement_list(string $type): string {
+    global $conn;
+    $rows = run_query($conn, "SELECT t.quantity, t.performed_by, t.created_at, p.name FROM transactions t JOIN parts p ON p.id = t.part_id WHERE t.type = ? AND t.created_at >= NOW() - INTERVAL 7 DAY ORDER BY t.created_at DESC LIMIT 20", "s", [$type])->fetch_all(MYSQLI_ASSOC);
+    if (!$rows) return '<li class="n-empty">None in the last 7 days.</li>';
+    $html = '';
+    foreach ($rows as $r) {
+        $qty = $type === 'in' ? '+' . (int)$r['quantity'] : '-' . abs((int)$r['quantity']);
+        $html .= '<li><span>' . e($r['name']) . '<small>' . e($r['performed_by']) . ' &middot; ' . e(fmt_datetime($r['created_at'])) . '</small></span><b>' . $qty . '</b></li>';
+    }
+    return $html;
+}
+
+function notif_stock_in_list(): string { return notif_movement_list('in'); }
+function notif_stock_out_list(): string { return notif_movement_list('out'); }
+
+function notif_announce_list(): string {
+    global $conn;
+    try {
+        $rows = run_query($conn, "SELECT message, posted_by, created_at FROM announcements ORDER BY created_at DESC LIMIT 10")->fetch_all(MYSQLI_ASSOC);
+    } catch (Throwable $t) {
+        return '<li class="n-empty">Announcements are not set up yet.</li>';
+    }
+    if (!$rows) return '<li class="n-empty">No announcements yet.</li>';
+    $html = '';
+    foreach ($rows as $r) {
+        $html .= '<li><span>' . e($r['message']) . '<small>' . e($r['posted_by']) . ' &middot; ' . e(fmt_datetime($r['created_at'])) . '</small></span></li>';
+    }
+    return $html;
+}
+
+// Header bell: click opens a dropdown panel over the page (no separate page).
 function bell_link(): string {
     $n = notification_total();
     $dot = $n > 0 ? '<span class="dot">' . $n . '</span>' : '';
-    $title = $n > 0 ? $n . ' notification' . ($n === 1 ? '' : 's') : 'Notifications';
-    return '<a class="bell" href="notifications.php" title="' . $title . '" style="color:inherit">' . icon('bell', 22) . $dot . '</a>';
+    $panel = notif_section('Low Stock Alerts', 'notif_low_stock', '1', 'notif_low_list')
+        . notif_section('Stock In (last 7 days)', 'notif_inventory', '1', 'notif_stock_in_list')
+        . notif_section('Stock Out (last 7 days)', 'notif_transactions', '1', 'notif_stock_out_list')
+        . notif_section('System Announcements', 'notif_announcements', '0', 'notif_announce_list');
+    return '<details class="notif-menu">'
+        . '<summary class="bell" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
+        . '<div class="notif-panel"><div class="notif-head">Notifications</div>' . $panel . '</div>'
+        . '</details>'
+        . '<style>'
+        . '.notif-menu{position:relative;display:inline-block}'
+        . '.notif-menu summary::-webkit-details-marker{display:none}'
+        . '.notif-panel{position:absolute;right:0;top:calc(100% + 10px);width:360px;max-width:90vw;max-height:70vh;overflow:auto;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,.4);z-index:60;text-align:left;font-size:14px}'
+        . '.notif-head{padding:14px 16px;font-weight:700;border-bottom:1px solid #334155}'
+        . '.n-title{padding:10px 16px 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8}'
+        . '.n-list{list-style:none;margin:0;padding:0 8px 8px}'
+        . '.n-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px;border-radius:8px}'
+        . '.n-list li:hover{background:rgba(59,130,246,.08)}'
+        . '.n-list li span{display:flex;flex-direction:column}'
+        . '.n-list li small{color:#94a3b8;font-size:12px}'
+        . '.n-list li b{white-space:nowrap}'
+        . '.n-empty{color:#94a3b8}'
+        . 'body.theme-light .notif-panel{background:#fff;color:#0f172a;border-color:#e2e8f0}'
+        . 'body.theme-light .notif-head{border-color:#e2e8f0}'
+        . '</style>';
 }
 
 // Shared sidebar used by every page. $active = 'dashboard', 'inventory', 'settings', etc.
