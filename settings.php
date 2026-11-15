@@ -134,7 +134,7 @@ function opt(string $value, string $label, string $current): string {
         <p>Manage system preferences, security, and application settings.</p>
       </div>
       <div class="top-right">
-        <div class="bell"><?= icon('bell', 22) ?></div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
