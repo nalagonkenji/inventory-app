@@ -992,3 +992,8 @@ dialog.item-dialog.wide { width: min(620px, 94vw); }
 @media (max-width: 860px) {
   .filters.two { grid-template-columns: 1fr; }
 }
+
+/* Users page */
+.stat-violet { border-color: rgba(168, 85, 247, 0.5); }
+.stat-violet .stat-icon { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.pill-violet { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
