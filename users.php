@@ -115,7 +115,7 @@ $pages = max(1, (int)ceil($matching / USER_PER_PAGE));
 $page = min($pages, max(1, (int)($_GET['page'] ?? 1)));
 $offset = ($page - 1) * USER_PER_PAGE;
 
-$rows = run_query($conn, "SELECT * FROM users $clause ORDER BY id LIMIT ? OFFSET ?", $types . 'ii', [...$params, USER_PER_PAGE, $offset])->fetch_all(MYSQLI_ASSOC);
+$rows = run_query($conn, "SELECT * FROM users $clause ORDER BY id LIMIT " . (int)USER_PER_PAGE . " OFFSET " . (int)$offset, $types, $params)->fetch_all(MYSQLI_ASSOC);
 
 $editRow = null;
 if (isset($_GET['edit'])) {
