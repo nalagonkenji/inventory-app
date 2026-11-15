@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$typeFilter = in_array($_GET['type'] ?? 'all', ['in', 'out', 'adjust'], true) ? $_GET['type'] : 'all';
+$typeFilter = in_array($_GET['type'] ?? 'all', ['in', 'out', 'adjust'], true) ? ($_GET['type'] ?? 'all') : 'all';
 $where = [];
 $types = '';
 $params = [];
