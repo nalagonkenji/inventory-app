@@ -122,7 +122,7 @@ $maxSold = max(1, max(array_map(fn($r) => (int)$r['sold'], $topCats) ?: [1]));
 // ---------- Report library filters ----------
 $q = trim($_GET['q'] ?? '');
 $typeFilter = $_GET['type'] ?? 'all';
-$now = date('M j, Y g:i A');
+$now = fmt_datetime('now');
 $lowOrOut = (int)$inv['outc'];
 
 $library = [];
@@ -180,7 +180,7 @@ foreach (REPORTS as $key => [$name, $type, $desc]) {
         </div>
         <div class="stat stat-amber">
           <div class="stat-icon"><?= icon('box', 26) ?></div>
-          <div><small>Inventory Value</small><strong>₱<?= number_format((float)$inv['value'], 2) ?></strong></div>
+          <div><small>Inventory Value</small><strong><?= money((float)$inv['value']) ?></strong></div>
         </div>
         <div class="stat stat-red">
           <div class="stat-icon"><?= icon('alert', 26) ?></div>
