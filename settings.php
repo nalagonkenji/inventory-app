@@ -21,6 +21,7 @@ $defaults = [
     'notif_announcements' => '0',
     'two_factor' => '0',
     'session_timeout' => '30',
+    'theme' => 'dark',
 ];
 
 function save_setting(mysqli $conn, string $key, string $value): void {
@@ -46,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             save_setting($conn, 'date_format', in_array($_POST['date_format'] ?? '', ['M d, Y', 'Y-m-d', 'd/m/Y'], true) ? $_POST['date_format'] : 'M d, Y');
             save_setting($conn, 'time_format', in_array($_POST['time_format'] ?? '', ['12', '24'], true) ? $_POST['time_format'] : '12');
         }
+    } elseif ($section === 'appearance') {
+        $theme = in_array($_POST['theme'] ?? '', ['dark', 'light', 'system'], true) ? $_POST['theme'] : 'dark';
+        save_setting($conn, 'theme', $theme);
     } elseif ($section === 'notifications') {
         foreach (['notif_low_stock', 'notif_inventory', 'notif_transactions', 'notif_announcements'] as $key) {
             save_setting($conn, $key, isset($_POST[$key]) ? '1' : '0');
@@ -215,11 +219,22 @@ function opt(string $value, string $label, string $current): string {
       <section class="panel">
         <div class="panel-head"><h2><?= icon('monitor', 20) ?> Appearance</h2></div>
         <p class="muted">Customize the look and feel of the system.</p>
-        <div class="theme-options">
-          <div class="theme-opt active">Dark (Default)</div>
-          <div class="theme-opt" aria-disabled="true">Light <small>(coming soon)</small></div>
-          <div class="theme-opt" aria-disabled="true">System <small>(coming soon)</small></div>
-        </div>
+        <form method="post">
+          <input type="hidden" name="section" value="appearance">
+          <input type="hidden" name="tab" value="appearance">
+          <div class="theme-options">
+            <?php foreach (['dark' => 'Dark (Default)', 'light' => 'Light', 'system' => 'System'] as $v => $label): ?>
+              <label class="theme-opt">
+                <input type="radio" name="theme" value="<?= $v ?>" <?= $cfg['theme'] === $v ? 'checked' : '' ?>>
+                <?= e($label) ?>
+                <?php if ($v === 'system'): ?><small>Follows your device setting</small><?php endif; ?>
+              </label>
+            <?php endforeach; ?>
+          </div>
+          <div class="dialog-actions">
+            <button class="btn-d primary" type="submit">Save Changes</button>
+          </div>
+        </form>
       </section>
 
       <?php elseif ($tab === 'notifications'): ?>
