@@ -186,6 +186,7 @@ tbody tr:hover { background: rgba(79, 70, 229, 0.06); }
 
 @media (min-width: 900px) {
   .auth-page { justify-content: flex-end; padding-right: 11vw; }
+  .auth-card { margin-bottom: 7vh; }
 }
 
 .auth-card {
@@ -198,7 +199,7 @@ tbody tr:hover { background: rgba(79, 70, 229, 0.06); }
   color: #f8fafc;
   text-align: center;
   padding: 38px 36px 32px;
-  max-width: 420px;
+  max-width: 460px;
 }
 
 .brand-logo {
