@@ -13,3 +13,12 @@ function require_login() {
         exit;
     }
 }
+
+// Only administrators may manage users.
+function require_admin() {
+    require_login();
+    if (($_SESSION['role'] ?? 'staff') !== 'admin') {
+        http_response_code(403);
+        exit('Only administrators can open this page.');
+    }
+}
