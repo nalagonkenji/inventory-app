@@ -246,9 +246,6 @@ function render_sidebar(string $active): void {
         . '<nav class="nav">'
         . nav_link($active, 'categories', 'categories.php', 'Categories', 'tag')
         . nav_link($active, 'users', 'users.php', 'Users', 'users')
-        . '<a class="' . ($active === 'notifications' ? 'nav-item active' : 'nav-item') . '" href="notifications.php">' . icon('bell') . ' Notifications'
-        . (($n = notification_total()) > 0 ? ' <span style="margin-left:auto;background:#ef4444;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px">' . $n . '</span>' : '')
-        . '</a>'
         . nav_link($active, 'settings', 'settings.php', 'Settings', 'settings')
         . '</nav>'
         . '<nav class="nav nav-bottom"><a class="logout-btn" href="logout.php">' . icon('logout') . ' Log Out</a></nav>'
