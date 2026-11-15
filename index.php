@@ -79,32 +79,7 @@ $shownTo = min($offset + PER_PAGE, $matching);
 <body class="dash-body">
 <div class="app">
 
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-logo"><?= icon('box', 46) ?></div>
-      <h2>Computer Parts<br>Inventory Management</h2>
-    </div>
-
-    <div class="nav-label">Menu</div>
-    <nav class="nav">
-      <span class="nav-item soon" title="Coming soon"><?= icon('home') ?> Dashboard</span>
-      <a class="nav-item active" href="index.php"><?= icon('layers') ?> Inventory</a>
-      <span class="nav-item soon" title="Coming soon"><?= icon('transfer') ?> Transactions</span>
-      <span class="nav-item soon" title="Coming soon"><?= icon('truck') ?> Suppliers</span>
-      <span class="nav-item soon" title="Coming soon"><?= icon('chart') ?> Reports</span>
-    </nav>
-
-    <div class="nav-label">Management</div>
-    <nav class="nav">
-      <span class="nav-item soon" title="Coming soon"><?= icon('tag') ?> Categories</span>
-      <span class="nav-item soon" title="Coming soon"><?= icon('users') ?> Users</span>
-      <span class="nav-item soon" title="Coming soon"><?= icon('settings') ?> Settings</span>
-    </nav>
-
-    <nav class="nav nav-bottom">
-      <a class="nav-item" href="logout.php"><?= icon('logout') ?> Log Out</a>
-    </nav>
-  </aside>
+  <?php render_sidebar('inventory'); ?>
 
   <div class="main">
     <header class="topbar2">
