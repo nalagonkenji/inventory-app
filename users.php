@@ -73,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$role = in_array($_GET['role'] ?? 'all', array_merge(['all'], USER_ROLES), true) ? $_GET['role'] : 'all';
-$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], USER_STATUSES), true) ? $_GET['status'] : 'all';
+$role = in_array($_GET['role'] ?? 'all', array_merge(['all'], USER_ROLES), true) ? ($_GET['role'] ?? 'all') : 'all';
+$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], USER_STATUSES), true) ? ($_GET['status'] ?? 'all') : 'all';
 
 $where = [];
 $types = '';
