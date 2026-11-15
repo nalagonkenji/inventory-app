@@ -249,7 +249,7 @@ function user_initials(string $name): string {
                 <td><?= e($r['email']) ?></td>
                 <td><span class="pill <?= $isAdmin ? 'pill-violet' : 'pill-blue' ?>"><?= icon($isAdmin ? 'star' : 'users', 14) ?> <?= $isAdmin ? 'Administrator' : 'Staff' ?></span></td>
                 <td><span class="pill <?= $sclass ?>"><?= icon($sicon, 14) ?> <?= $spill ?></span></td>
-                <td><?= $r['last_login'] ? e(date('M j, Y g:i A', strtotime($r['last_login']))) : '-' ?></td>
+                <td><?= $r['last_login'] ? e(fmt_datetime($r['last_login'])) : '-' ?></td>
                 <td class="right">
                   <div class="row-actions">
                     <a class="icon-btn edit" title="Edit" href="<?= e(user_url($baseParams, ['page' => $page, 'edit' => $r['id']])) ?>"><?= icon('edit', 16) ?></a>
