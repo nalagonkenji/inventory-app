@@ -51,6 +51,7 @@ function icon(string $name, int $size = 18): string {
         'arrowup'  => 'M12 19V5M5 12l7-7 7 7',
         'arrowdown'=> 'M12 5v14M19 12l-7 7-7-7',
         'adjust'   => 'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',
+        'star'     => 'M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z',
         'home'     => 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
         'monitor'  => 'M2 4h20v12H2zM8 20h8M12 16v4',
         'box'      => 'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
@@ -106,7 +107,7 @@ function render_sidebar(string $active): void {
         . '<div class="nav-label">Management</div>'
         . '<nav class="nav">'
         . nav_link($active, 'categories', 'categories.php', 'Categories', 'tag')
-        . nav_soon('Users', 'users')
+        . nav_link($active, 'users', 'users.php', 'Users', 'users')
         . nav_soon('Settings', 'settings')
         . '</nav>'
         . '<nav class="nav nav-bottom"><a class="logout-btn" href="logout.php">' . icon('logout') . ' Log Out</a></nav>'
