@@ -108,7 +108,7 @@ function render_sidebar(string $active): void {
         . '<nav class="nav">'
         . nav_link($active, 'categories', 'categories.php', 'Categories', 'tag')
         . nav_link($active, 'users', 'users.php', 'Users', 'users')
-        . nav_soon('Settings', 'settings')
+        . nav_link($active, 'settings', 'settings.php', 'Settings', 'settings')
         . '</nav>'
         . '<nav class="nav nav-bottom"><a class="logout-btn" href="logout.php">' . icon('logout') . ' Log Out</a></nav>'
         . '</aside>';
