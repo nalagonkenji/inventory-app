@@ -51,7 +51,7 @@ $page = min($pages, max(1, (int)($_GET['page'] ?? 1)));
 $offset = ($page - 1) * PER_PAGE;
 
 $rows = run_query($conn, "SELECT * FROM parts $where ORDER BY id DESC LIMIT ? OFFSET ?", $types . 'ii', [...$params, PER_PAGE, $offset]);
-$catList = run_query($conn, "SELECT DISTINCT category FROM parts WHERE category <> '' ORDER BY category")->fetch_all(MYSQLI_ASSOC);
+$catList = run_query($conn, "SELECT name AS category FROM categories WHERE status = 'active' UNION SELECT DISTINCT category FROM parts WHERE category <> '' ORDER BY category")->fetch_all(MYSQLI_ASSOC);
 
 $editRow = null;
 if (isset($_GET['edit'])) {
@@ -221,8 +221,12 @@ $shownTo = min($offset + PER_PAGE, $matching);
       <input name="name" required maxlength="100" value="<?= e($editRow['name'] ?? '') ?>">
     </label>
     <label>Category
-      <input name="category" list="catList" maxlength="50" value="<?= e($editRow['category'] ?? '') ?>">
-      <datalist id="catList"><?php foreach ($catList as $c): ?><option value="<?= e($c['category']) ?>"><?php endforeach; ?></datalist>
+      <select name="category">
+        <option value="">Select category</option>
+        <?php foreach ($catList as $c): ?>
+          <option value="<?= e($c['category']) ?>" <?= ($editRow['category'] ?? '') === $c['category'] ? 'selected' : '' ?>><?= e($c['category']) ?></option>
+        <?php endforeach; ?>
+      </select>
     </label>
     <label>Price (<?= e(currency_symbol()) ?>)
       <input name="price" type="number" step="0.01" min="0" required value="<?= e($editRow['price'] ?? '') ?>">
