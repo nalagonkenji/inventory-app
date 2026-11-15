@@ -91,6 +91,37 @@ function nav_soon(string $label, string $icon): string {
     return '<span class="nav-item soon" title="Coming soon">' . icon($icon) . ' ' . $label . '</span>';
 }
 
+// Reads one saved setting (cached per page load). Falls back to $default if missing.
+function app_setting(string $key, string $default = ''): string {
+    static $cache = null;
+    global $conn;
+    if ($cache === null) {
+        $cache = [];
+        try {
+            foreach (run_query($conn, "SELECT setting_key, setting_value FROM settings")->fetch_all(MYSQLI_ASSOC) as $r) {
+                $cache[$r['setting_key']] = $r['setting_value'];
+            }
+        } catch (Throwable $t) {
+            // settings table not created yet: use defaults
+        }
+    }
+    return $cache[$key] ?? $default;
+}
+
+function currency_symbol(): string {
+    return ['PHP' => '₱', 'USD' => '$', 'EUR' => '€'][app_setting('currency', 'PHP')] ?? '₱';
+}
+
+function money(float $amount): string {
+    return currency_symbol() . number_format($amount, 2);
+}
+
+function fmt_datetime(string $value): string {
+    $date = app_setting('date_format', 'M d, Y');
+    $time = app_setting('time_format', '12') === '24' ? 'H:i' : 'g:i A';
+    return date($date . ' ' . $time, strtotime($value));
+}
+
 // Reads the saved theme (dark, light, or system). Falls back to dark if the settings table is missing.
 function app_theme(): string {
     global $conn;
@@ -109,7 +140,7 @@ function render_sidebar(string $active): void {
     echo '<script>(function(){var t=' . $theme . ';if(t==="system"){t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}document.body.classList.toggle("theme-light",t==="light");})();</script>';
     echo '<aside class="sidebar">'
         . '<div class="brand"><div class="brand-logo">' . icon('box', 52) . '</div>'
-        . '<h2>Computer Parts<br>Inventory Management</h2></div>'
+        . '<h2>' . e(app_setting('system_name', 'Computer Parts Inventory Management')) . '</h2></div>'
         . '<div class="nav-label">Menu</div>'
         . '<nav class="nav">'
         . nav_link($active, 'dashboard', 'dashboard.php', 'Dashboard', 'home')
