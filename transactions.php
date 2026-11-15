@@ -226,7 +226,7 @@ function tx_url(array $base, array $extra): string {
                 <td><span class="pill <?= $pill ?>"><?= icon($arrow, 14) ?> <?= $typeLabel ?></span></td>
                 <td><strong><?= e($r['name'] ?? '(deleted item)') ?></strong></td>
                 <td class="<?= $qtyClass ?>"><?= e($qtyText) ?></td>
-                <td><?= e(date('M j, Y g:i A', strtotime($r['created_at']))) ?></td>
+                <td><?= e(fmt_datetime($r['created_at'])) ?></td>
                 <td><?= e($r['performed_by']) ?></td>
                 <td class="right">
                   <div class="row-actions">
