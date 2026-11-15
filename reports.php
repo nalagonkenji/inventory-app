@@ -153,10 +153,7 @@ foreach (REPORTS as $key => [$name, $type, $desc]) {
         <p>View inventory insights, stock summaries, and transaction reports.</p>
       </div>
       <div class="top-right">
-        <div class="bell" title="<?= $lowOrOut ?> items are out of stock">
-          <?= icon('bell', 22) ?>
-          <?php if ($lowOrOut > 0): ?><span class="dot"><?= $lowOrOut ?></span><?php endif; ?>
-        </div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
