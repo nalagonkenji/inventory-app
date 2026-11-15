@@ -1024,3 +1024,40 @@ dialog.item-dialog.wide { width: min(620px, 94vw); }
   .tabs { grid-template-columns: repeat(2, 1fr); }
   .grid-2, .theme-options { grid-template-columns: 1fr; }
 }
+
+/* Dropdowns (dark default) */
+.dialog-form select, .setting-row select, .filters select {
+  background: #0b1222; color: #e2e8f0; border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 10px; padding: 10px 12px; font: inherit; min-height: 42px; cursor: pointer;
+}
+select option { background: #0f172a; color: #e2e8f0; }
+
+/* Theme cards: radio hidden, selected card highlighted live */
+.theme-opt { cursor: pointer; position: relative; }
+.theme-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.theme-opt:has(input:checked) { border-color: #3b82f6; box-shadow: inset 0 0 0 1px #3b82f6; }
+.theme-opt[aria-disabled="true"] { opacity: 1; }
+
+/* Light theme (applied by body.theme-light) */
+body.theme-light { background: #f1f5f9; color: #0f172a; }
+body.theme-light .main { background: #f1f5f9; }
+body.theme-light .sidebar { background: #ffffff; background-image: none; border-color: #e2e8f0; }
+body.theme-light .sidebar a:not(.active) { color: #334155; }
+body.theme-light .topbar2, body.theme-light .panel, body.theme-light .stat, body.theme-light .tab,
+body.theme-light .theme-opt, body.theme-light dialog, body.theme-light .userbox-menu {
+  background: #ffffff; color: #0f172a; border-color: #e2e8f0;
+}
+body.theme-light .page-title p, body.theme-light .muted, body.theme-light .info-list span,
+body.theme-light .stat small { color: #64748b; }
+body.theme-light .tab:not(.active) { color: #0f172a; }
+body.theme-light .tbl th { background: #f8fafc; color: #475569; }
+body.theme-light .tbl td, body.theme-light .tbl th { border-color: #e2e8f0; color: #0f172a; }
+body.theme-light .tbl .empty { color: #64748b; }
+body.theme-light .tbl .addr { color: #475569; }
+body.theme-light input, body.theme-light select, body.theme-light textarea {
+  background: #ffffff; color: #0f172a; border-color: #cbd5e1;
+}
+body.theme-light select option { background: #ffffff; color: #0f172a; }
+body.theme-light .setting-row, body.theme-light .info-list > div { border-color: #e2e8f0; }
+body.theme-light .switch .slider { background: #cbd5e1; }
+body.theme-light .userbox summary { color: #0f172a; }
