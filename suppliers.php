@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], SUP_STATUSES), true) ? $_GET['status'] : 'all';
+$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], SUP_STATUSES), true) ? ($_GET['status'] ?? 'all') : 'all';
 $cat = in_array($_GET['cat'] ?? '', SUP_CATEGORIES, true) ? $_GET['cat'] : '';
 
 $where = [];
