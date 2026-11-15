@@ -105,7 +105,7 @@ function render_sidebar(string $active): void {
         . '</nav>'
         . '<div class="nav-label">Management</div>'
         . '<nav class="nav">'
-        . nav_soon('Categories', 'tag')
+        . nav_link($active, 'categories', 'categories.php', 'Categories', 'tag')
         . nav_soon('Users', 'users')
         . nav_soon('Settings', 'settings')
         . '</nav>'
