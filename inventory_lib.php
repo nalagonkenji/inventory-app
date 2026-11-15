@@ -49,6 +49,7 @@ function run_query(mysqli $conn, string $sql, string $types = '', array $params 
 function icon(string $name, int $size = 18): string {
     static $paths = [
         'home'     => 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+        'monitor'  => 'M2 4h20v12H2zM8 20h8M12 16v4',
         'box'      => 'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
         'layers'   => 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
         'truck'    => 'M1 6h13v10H1zM14 10h4l3 3v3h-7zM5.5 18.5a1.5 1.5 0 1 0 0 .01M17.5 18.5a1.5 1.5 0 1 0 0 .01',
@@ -74,4 +75,37 @@ function icon(string $name, int $size = 18): string {
     ];
     $d = $paths[$name] ?? '';
     return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' . $d . '"/></svg>';
+}
+
+
+function nav_link(string $active, string $key, string $href, string $label, string $icon): string {
+    $cls = $active === $key ? 'nav-item active' : 'nav-item';
+    return '<a class="' . $cls . '" href="' . $href . '">' . icon($icon) . ' ' . $label . '</a>';
+}
+
+function nav_soon(string $label, string $icon): string {
+    return '<span class="nav-item soon" title="Coming soon">' . icon($icon) . ' ' . $label . '</span>';
+}
+
+// Shared sidebar used by every page. $active = 'dashboard' or 'inventory'.
+function render_sidebar(string $active): void {
+    echo '<aside class="sidebar">'
+        . '<div class="brand"><div class="brand-logo">' . icon('box', 52) . '</div>'
+        . '<h2>Computer Parts<br>Inventory Management</h2></div>'
+        . '<div class="nav-label">Menu</div>'
+        . '<nav class="nav">'
+        . nav_link($active, 'dashboard', 'dashboard.php', 'Dashboard', 'home')
+        . nav_link($active, 'inventory', 'index.php', 'Inventory', 'layers')
+        . nav_soon('Transactions', 'transfer')
+        . nav_soon('Suppliers', 'truck')
+        . nav_soon('Reports', 'chart')
+        . '</nav>'
+        . '<div class="nav-label">Management</div>'
+        . '<nav class="nav">'
+        . nav_soon('Categories', 'tag')
+        . nav_soon('Users', 'users')
+        . nav_soon('Settings', 'settings')
+        . '</nav>'
+        . '<nav class="nav nav-bottom"><a class="logout-btn" href="logout.php">' . icon('logout') . ' Log Out</a></nav>'
+        . '</aside>';
 }
