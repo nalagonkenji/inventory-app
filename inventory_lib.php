@@ -205,9 +205,10 @@ function bell_link(): string {
         . notif_section('Stock In (last 7 days)', 'notif_inventory', '1', 'notif_stock_in_list')
         . notif_section('Stock Out (last 7 days)', 'notif_transactions', '1', 'notif_stock_out_list')
         . notif_section('System Announcements', 'notif_announcements', '0', 'notif_announce_list');
-    return '<details class="notif-menu">'
+    return '<details class="notif-menu" data-count="' . $n . '">'
         . '<summary class="bell" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
         . '<div class="notif-panel"><div class="notif-head">Notifications</div>' . $panel . '</div>'
+        . '<script>(function(){var m=document.currentScript.parentNode;var n=parseInt(m.getAttribute("data-count"),10)||0;var dot=m.querySelector(".dot");var s=0;try{var v=localStorage.getItem("notifSeen");if(v!==null){s=parseInt(v,10)||0;}}catch(e){}if(n<s){s=n;}var show=n-s;if(show<=0){if(dot){dot.remove();dot=null;}}else if(dot){dot.textContent=show;}m.addEventListener("toggle",function(){if(m.open){try{localStorage.setItem("notifSeen",String(n));}catch(e){}if(dot){dot.remove();dot=null;}}});})();</script>'
         . '</details>'
         . '<style>'
         . '.notif-menu{position:relative;display:inline-block}'
