@@ -178,7 +178,7 @@ $shownTo = min($offset + PER_PAGE, $matching);
                   </div>
                 </td>
                 <td><span class="tag <?= tag_class($row['category']) ?>"><?= e($row['category'] !== '' ? $row['category'] : 'Uncategorized') ?></span></td>
-                <td>₱<?= number_format((float)$row['price'], 2) ?></td>
+                <td><?= money((float)$row['price']) ?></td>
                 <td><?= (int)$row['quantity'] ?></td>
                 <td><span class="pill <?= $pill ?>"><?= icon($statusIcon, 14) ?> <?= $label ?></span></td>
                 <td class="right">
@@ -227,7 +227,7 @@ $shownTo = min($offset + PER_PAGE, $matching);
       <input name="category" list="catList" maxlength="50" value="<?= e($editRow['category'] ?? '') ?>">
       <datalist id="catList"><?php foreach ($catList as $c): ?><option value="<?= e($c['category']) ?>"><?php endforeach; ?></datalist>
     </label>
-    <label>Price (₱)
+    <label>Price (<?= e(currency_symbol()) ?>)
       <input name="price" type="number" step="0.01" min="0" required value="<?= e($editRow['price'] ?? '') ?>">
     </label>
     <label>Quantity
