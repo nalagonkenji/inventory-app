@@ -144,7 +144,7 @@ function tx_url(array $base, array $extra): string {
         <p>Record and manage stock in, stock out, and adjustments.</p>
       </div>
       <div class="top-right">
-        <div class="bell"><?= icon('bell', 22) ?></div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
