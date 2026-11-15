@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], CAT_STATUSES), true) ? $_GET['status'] : 'all';
+$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], CAT_STATUSES), true) ? ($_GET['status'] ?? 'all') : 'all';
 
 $where = [];
 $types = '';
