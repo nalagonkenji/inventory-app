@@ -89,10 +89,7 @@ $shownTo = min($offset + PER_PAGE, $matching);
         <p>Manage and track computer parts inventory.</p>
       </div>
       <div class="top-right">
-        <div class="bell" title="<?= $lowOrOut ?> items need attention">
-          <?= icon('bell', 22) ?>
-          <?php if ($lowOrOut > 0): ?><span class="dot"><?= $lowOrOut ?></span><?php endif; ?>
-        </div>
+                <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
