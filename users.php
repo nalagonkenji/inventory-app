@@ -160,7 +160,7 @@ function user_initials(string $name): string {
         <p>Manage system users, roles, and access permissions.</p>
       </div>
       <div class="top-right">
-        <div class="bell"><?= icon('bell', 22) ?></div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
