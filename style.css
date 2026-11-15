@@ -964,3 +964,31 @@ dialog.item-dialog.wide { width: min(620px, 94vw); }
   .filters.three { grid-template-columns: 1fr; }
   .form-2col, .cat-grid { grid-template-columns: 1fr; }
 }
+
+/* ===================== Reports ===================== */
+.stats-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.filters.two { grid-template-columns: 1fr 240px; }
+.pill-blue { color: #93c5fd; background: rgba(59, 130, 246, 0.14); border-color: rgba(59, 130, 246, 0.5); }
+.pill-violet { color: #c4b5fd; background: rgba(139, 92, 246, 0.14); border-color: rgba(139, 92, 246, 0.5); }
+.legend-inline { display: inline-flex; align-items: center; gap: 8px; color: #cbd5e1; font-size: 0.85rem; }
+.legend-inline .swatch { margin-left: 8px; }
+.month-chart {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-items: end;
+  height: 230px;
+  padding-top: 10px;
+}
+.month-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+.month-col small { color: #cbd5e1; font-weight: 600; }
+.month-col .net { color: #94a3b8; font-size: 0.75rem; }
+.month-bars { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 4px; min-height: 0; }
+.mbar { width: 38%; max-width: 22px; border-radius: 6px 6px 2px 2px; min-height: 2px; }
+.mbar-in { background: linear-gradient(180deg, #60a5fa, #2563eb); }
+.mbar-out { background: linear-gradient(180deg, #c084fc, #7c3aed); }
+.small-note { margin: 12px 0 0; font-size: 0.88rem; }
+.tbl .addr { max-width: 280px; color: #cbd5e1; }
+@media (max-width: 860px) {
+  .filters.two { grid-template-columns: 1fr; }
+}
