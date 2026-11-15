@@ -139,7 +139,7 @@ function initials(string $name): string {
         <p>Manage your suppliers, contact details, and supply records.</p>
       </div>
       <div class="top-right">
-        <div class="bell"><?= icon('bell', 22) ?></div>
+        <?= bell_link() ?>
         <details class="userbox">
           <summary>
             <span class="avatar"><?= icon('users', 18) ?></span>
