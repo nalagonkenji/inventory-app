@@ -150,6 +150,14 @@ function notification_total(): int {
     return $total;
 }
 
+// Header bell: clickable link to the Notifications page, with a count dot when there is something to see.
+function bell_link(): string {
+    $n = notification_total();
+    $dot = $n > 0 ? '<span class="dot">' . $n . '</span>' : '';
+    $title = $n > 0 ? $n . ' notification' . ($n === 1 ? '' : 's') : 'Notifications';
+    return '<a class="bell" href="notifications.php" title="' . $title . '" style="color:inherit">' . icon('bell', 22) . $dot . '</a>';
+}
+
 // Shared sidebar used by every page. $active = 'dashboard', 'inventory', 'settings', etc.
 function render_sidebar(string $active): void {
     $theme = json_encode(app_theme());
