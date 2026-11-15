@@ -100,7 +100,7 @@ function render_sidebar(string $active): void {
         . nav_link($active, 'dashboard', 'dashboard.php', 'Dashboard', 'home')
         . nav_link($active, 'inventory', 'index.php', 'Inventory', 'layers')
         . nav_link($active, 'transactions', 'transactions.php', 'Transactions', 'transfer')
-        . nav_soon('Suppliers', 'truck')
+        . nav_link($active, 'suppliers', 'suppliers.php', 'Suppliers', 'truck')
         . nav_soon('Reports', 'chart')
         . '</nav>'
         . '<div class="nav-label">Management</div>'
