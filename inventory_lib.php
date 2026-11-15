@@ -91,8 +91,22 @@ function nav_soon(string $label, string $icon): string {
     return '<span class="nav-item soon" title="Coming soon">' . icon($icon) . ' ' . $label . '</span>';
 }
 
-// Shared sidebar used by every page. $active = 'dashboard' or 'inventory'.
+// Reads the saved theme (dark, light, or system). Falls back to dark if the settings table is missing.
+function app_theme(): string {
+    global $conn;
+    try {
+        $row = run_query($conn, "SELECT setting_value FROM settings WHERE setting_key = 'theme'")->fetch_assoc();
+    } catch (Throwable $t) {
+        return 'dark';
+    }
+    $v = $row['setting_value'] ?? 'dark';
+    return in_array($v, ['dark', 'light', 'system'], true) ? $v : 'dark';
+}
+
+// Shared sidebar used by every page. $active = 'dashboard', 'inventory', 'settings', etc.
 function render_sidebar(string $active): void {
+    $theme = json_encode(app_theme());
+    echo '<script>(function(){var t=' . $theme . ';if(t==="system"){t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}document.body.classList.toggle("theme-light",t==="light");})();</script>';
     echo '<aside class="sidebar">'
         . '<div class="brand"><div class="brand-logo">' . icon('box', 52) . '</div>'
         . '<h2>Computer Parts<br>Inventory Management</h2></div>'
