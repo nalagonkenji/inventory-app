@@ -1,886 +1,251 @@
-:root {
-  --bg: #0f172a;
-  --surface: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --danger: #b91c1c;
-  --success: #15803d;
-  --border: #e2e8f0;
-  --radius: 14px;
-  --shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface: #1e293b;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --border: #334155;
-  }
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: var(--text);
-  background: #f1f5f9;
-  min-height: 100vh;
-}
-
-/* ---------- Login & sign-up ---------- */
-.auth-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #312e81 0%, #1e3a8a 50%, #0f172a 100%);
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 36px 32px;
-}
-
-.auth-card h1 { margin: 0 0 6px; font-size: 1.6rem; }
-.subtitle { margin: 0 0 22px; color: var(--muted); }
-
-.auth-form { display: grid; gap: 16px; }
-
-.auth-switch {
-  margin: 22px 0 0;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-/* ---------- Form elements ---------- */
-label {
-  display: grid;
-  gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-input {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font: inherit;
-  background: var(--surface);
-  color: var(--text);
-}
-
-input:focus {
-  outline: 3px solid rgba(79, 70, 229, 0.35);
-  border-color: var(--primary);
-}
-
-.btn {
-  display: inline-block;
-  padding: 11px 18px;
-  border: none;
-  border-radius: 10px;
-  font: inherit;
-  font-weight: 600;
-  text-decoration: none;
-  text-align: center;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-hover); }
-
-.btn-ghost {
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 7px 14px;
-}
-.btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
-
-a { color: var(--primary); font-weight: 600; }
-
-.alert {
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 0.95rem;
-}
-.alert-error { background: #fee2e2; color: var(--danger); }
-.alert-success { background: #dcfce7; color: var(--success); }
-
-/* ---------- Inventory page ---------- */
-.topbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 24px;
-  background: linear-gradient(90deg, #312e81, #1e3a8a);
-  color: #fff;
-}
-.topbar h1 { margin: 0; font-size: 1.35rem; }
-.userbox { display: flex; gap: 12px; align-items: center; font-size: 0.95rem; }
-
-.container {
-  max-width: 1000px;
-  margin: 24px auto;
-  padding: 0 16px;
-  display: grid;
-  gap: 20px;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-}
-.card h2 { margin: 0 0 14px; font-size: 1.1rem; }
-
-.part-form {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  align-items: end;
-}
-.part-form .btn { grid-column: 1 / -1; justify-self: start; }
-
-.table-wrap { overflow-x: auto; }
-
-table { width: 100%; border-collapse: collapse; }
-th, td {
-  padding: 11px 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-th {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-tbody tr:hover { background: rgba(79, 70, 229, 0.06); }
-
-@media (max-width: 480px) {
-  .auth-card { padding: 28px 22px; }
-  .topbar { padding: 16px; }
-}
-
-/* ===== Inventory system login theme (overrides the earlier auth styles) ===== */
-.auth-page {
-  background: #0b1220 url('login-bg.png') center / cover no-repeat fixed;
-  color: #e2e8f0;
-}
-
-@media (min-width: 900px) {
-  .auth-page { justify-content: flex-end; padding-right: 11vw; }
-  .auth-card { margin-bottom: 7vh; }
-}
-
-.auth-card {
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 22px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  color: #f8fafc;
-  text-align: center;
-  padding: 38px 36px 32px;
-  max-width: 460px;
-}
-
-.brand-logo {
-  color: #22d3ee;
-  filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.55));
-  margin-bottom: 14px;
-}
-
-.auth-card h1 {
-  font-size: 1.45rem;
-  line-height: 1.25;
-  color: #ffffff;
-  margin: 0 0 10px;
-}
-
-.auth-card .subtitle { color: #cbd5e1; margin: 0; font-size: 0.95rem; }
-
-.accent-line {
-  display: block;
-  width: 56px;
-  height: 3px;
-  margin: 18px auto 22px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
-}
-
-.auth-form { gap: 14px; }
-
-.field {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-weight: 400;
-  text-align: left;
-  color: #cbd5e1;
-}
-.field:focus-within {
-  border-color: #22d3ee;
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
-}
-.field-icon { display: inline-flex; color: #94a3b8; }
-
-.field input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 13px 4px;
-  color: #f8fafc;
-  outline: none;
-  width: auto;
-}
-.field input:focus { outline: none; border: none; }
-.field input::placeholder { color: #94a3b8; }
-
-.toggle-pass {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 4px;
-  display: inline-flex;
-}
-.toggle-pass:hover { color: #e2e8f0; }
-
-.form-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  color: #cbd5e1;
-}
-.remember { display: inline-flex; align-items: center; gap: 8px; font-weight: 400; }
-.remember input { width: 16px; height: 16px; accent-color: #22d3ee; }
-.forgot { color: #67e8f9; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: default; }
-
-.btn-block {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 1rem;
-  color: #ffffff;
-  background: linear-gradient(90deg, #22d3ee, #2563eb);
-  box-shadow: 0 10px 28px rgba(34, 211, 238, 0.3);
-}
-.btn-block:hover { background: linear-gradient(90deg, #67e8f9, #3b82f6); }
-
-.auth-card .alert { text-align: left; }
-.auth-card .alert-error { background: rgba(127, 29, 29, 0.7); color: #fecaca; }
-.auth-card .alert-success { background: rgba(20, 83, 45, 0.7); color: #bbf7d0; }
-
-.auth-switch { color: #cbd5e1; }
-.auth-switch a { color: #67e8f9; }
-
-/* ===== Animated neon border around the login card ===== */
-@property --neon-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
-.auth-card {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-}
-
-.auth-card::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  z-index: -1;
-  border-radius: 24px;
-  padding: 2px;
-  background: conic-gradient(
-    from var(--neon-angle),
-    transparent 0deg,
-    transparent 250deg,
-    #22d3ee 300deg,
-    #ffffff 320deg,
-    #3b82f6 340deg,
-    transparent 360deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.9)) drop-shadow(0 0 14px rgba(59, 130, 246, 0.7));
-  animation: neon-spin 3.5s linear infinite, neon-flicker 2.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes neon-spin {
-  to { --neon-angle: 360deg; }
-}
-
-@keyframes neon-flicker {
-  0%, 100% { opacity: 1; }
-  45% { opacity: 1; }
-  47% { opacity: 0.55; }
-  49% { opacity: 1; }
-  52% { opacity: 0.8; }
-  54% { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-card::before { animation: none; }
-}
-
-/* ===================== Inventory dashboard ===================== */
-body.dash-body {
-  background: #0b1222;
-  color: #e2e8f0;
-  margin: 0;
-}
-
-.app {
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  min-height: 100vh;
-}
-
-/* Sidebar */
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 22px 16px;
-  background: linear-gradient(180deg, #0b1a33 0%, #08101f 100%);
-  border-right: 1px solid #1e2d4a;
-}
-.brand { text-align: center; margin-bottom: 14px; }
-.brand-logo { color: #22d3ee; filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.5)); }
-.brand h2 { margin: 10px 0 0; font-size: 0.98rem; line-height: 1.3; color: #fff; }
-.nav-label {
-  margin: 18px 12px 6px;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-.nav { display: grid; gap: 4px; }
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
-  border-radius: 10px;
-  color: #cbd5e1;
-  text-decoration: none;
-  font-weight: 500;
-}
-a.nav-item:hover { background: rgba(59, 130, 246, 0.12); color: #fff; }
-.nav-item.active {
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
-}
-.nav-item.soon { opacity: 0.5; cursor: default; }
-.nav-bottom { margin-top: auto; border-top: 1px solid #1e2d4a; padding-top: 14px; }
-
-/* Main column */
-.main { min-width: 0; }
-
-.topbar2 {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 26px;
-  background: #0c1629;
-  border-bottom: 1px solid #1e2d4a;
-}
-.menu-btn { display: none; background: none; border: none; color: #e2e8f0; cursor: pointer; }
-.page-title h1 { margin: 0; font-size: 1.25rem; color: #fff; }
-.page-title p { margin: 2px 0 0; color: #94a3b8; font-size: 0.92rem; }
-.title-row { display: flex; align-items: center; gap: 10px; color: #22d3ee; }
-.top-right { margin-left: auto; display: flex; align-items: center; gap: 20px; }
-
-.bell { position: relative; color: #cbd5e1; display: inline-flex; }
-.bell .dot {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: #3b82f6;
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-
-.userbox { position: relative; }
-.userbox summary {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  color: #e2e8f0;
-  font-weight: 600;
-}
-.userbox summary::-webkit-details-marker { display: none; }
-.avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #334155, #1e293b);
-  color: #cbd5e1;
-}
-.userbox-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: #111c33;
-  border: 1px solid #2a3c5f;
-  border-radius: 10px;
-  color: #e2e8f0;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.content { padding: 22px 26px; display: grid; gap: 20px; }
-
-/* Stat cards */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 18px;
-  border-radius: 14px;
-  background: rgba(17, 28, 51, 0.85);
-  border: 1px solid;
-}
-.stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-.stat small { color: #94a3b8; font-size: 0.88rem; }
-.stat strong { display: block; font-size: 1.7rem; color: #fff; margin-top: 2px; }
-.stat-blue { border-color: rgba(59, 130, 246, 0.5); }
-.stat-blue .stat-icon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.stat-green { border-color: rgba(34, 197, 94, 0.5); }
-.stat-green .stat-icon { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-.stat-amber { border-color: rgba(245, 158, 11, 0.5); }
-.stat-amber .stat-icon { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.stat-red { border-color: rgba(239, 68, 68, 0.5); }
-.stat-red .stat-icon { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-
-/* Panel */
-.panel {
-  background: #111c33;
-  border: 1px solid #1e2d4a;
-  border-radius: 14px;
-  padding: 20px;
-}
-.panel-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.panel-head h2 { margin: 0; font-size: 1.25rem; color: #fff; }
-.actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-.btn-d {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #2a3c5f;
-  background: #0f1a30;
-  color: #e2e8f0;
-  font: inherit;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-.btn-d:hover { border-color: #3b82f6; }
-.btn-d.primary {
-  background: linear-gradient(90deg, #2563eb, #3b82f6);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
-}
-
-/* Filters */
-.filters {
-  display: grid;
-  grid-template-columns: 1fr 200px 200px;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.search-field {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-  background: #0f1a30;
-  border: 1px solid #2a3c5f;
-  border-radius: 10px;
-  color: #94a3b8;
-}
-.search-field input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: #e2e8f0;
-  padding: 11px 0;
-  outline: none;
-  width: auto;
-}
-.filters select {
-  padding: 11px 12px;
-  background: #0f1a30;
-  border: 1px solid #2a3c5f;
-  border-radius: 10px;
-  color: #e2e8f0;
-  font: inherit;
-  width: 100%;
-}
-
-/* Table */
-.table-wrap { overflow-x: auto; }
-.tbl { width: 100%; border-collapse: collapse; }
-.tbl th {
-  text-align: left;
-  padding: 12px;
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #94a3b8;
-  border-bottom: 1px solid #1e2d4a;
-  background: #0c1629;
-}
-.tbl td {
-  padding: 12px;
-  border-bottom: 1px solid #1a2843;
-  vertical-align: middle;
-  color: #e2e8f0;
-}
-.tbl tbody tr:hover td { background: rgba(59, 130, 246, 0.06); }
-.tbl .right { text-align: right; }
-.tbl .empty { text-align: center; color: #94a3b8; padding: 28px; }
-
-.item { display: flex; align-items: center; gap: 12px; }
-.item strong { color: #fff; }
-.thumb {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: #0f1a30;
-  border: 1px solid #223457;
-  color: #60a5fa;
-  flex: none;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border: 1px solid;
-  white-space: nowrap;
-}
-.tag-cyan   { color: #67e8f9; background: rgba(34, 211, 238, 0.1); border-color: rgba(34, 211, 238, 0.4); }
-.tag-violet { color: #c4b5fd; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.45); }
-.tag-amber  { color: #fcd34d; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.45); }
-.tag-pink   { color: #f9a8d4; background: rgba(236, 72, 153, 0.12); border-color: rgba(236, 72, 153, 0.45); }
-.tag-green  { color: #86efac; background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.45); }
-.tag-blue   { color: #93c5fd; background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.45); }
-.tag-red    { color: #fca5a5; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.45); }
-.tag-orange { color: #fdba74; background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.45); }
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border: 1px solid;
-  white-space: nowrap;
-}
-.pill-in  { color: #4ade80; background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.45); }
-.pill-low { color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.45); }
-.pill-out { color: #f87171; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.45); }
-
-.row-actions { display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end; }
-.inline { display: inline; margin: 0; }
-.icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  display: inline-grid;
-  place-items: center;
-  border: 1px solid;
-  background: transparent;
-  cursor: pointer;
-  text-decoration: none;
-}
-.icon-btn.edit { color: #60a5fa; border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.1); }
-.icon-btn.del { color: #f87171; border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.12); }
-
-/* Footer / pagination */
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 16px;
-  color: #94a3b8;
-}
-.pager { display: flex; gap: 8px; flex-wrap: wrap; }
-.pager a {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 8px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #2a3c5f;
-  border-radius: 9px;
-  background: #0f1a30;
-  color: #e2e8f0;
-  text-decoration: none;
-  font-weight: 600;
-}
-.pager a.current { background: #2563eb; border-color: #2563eb; color: #fff; }
-.pager a.disabled { opacity: 0.35; pointer-events: none; }
-
-/* Add / edit dialog */
-dialog.item-dialog {
-  background: #111c33;
-  color: #e2e8f0;
-  border: 1px solid #2a3c5f;
-  border-radius: 16px;
-  padding: 24px;
-  width: min(460px, 92vw);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-}
-dialog.item-dialog::backdrop { background: rgba(2, 6, 23, 0.7); }
-.dialog-form { display: grid; gap: 14px; }
-.dialog-form h2 { margin: 0; color: #fff; font-size: 1.2rem; }
-.dialog-form label { display: grid; gap: 6px; font-size: 0.9rem; font-weight: 600; color: #cbd5e1; }
-.dialog-form input {
-  background: #0f1a30;
-  border: 1px solid #2a3c5f;
-  border-radius: 10px;
-  padding: 11px 12px;
-  color: #fff;
-}
-.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
-
-/* Responsive */
-@media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { position: static; height: auto; }
-  .menu-btn { display: inline-grid; }
-  .stats { grid-template-columns: 1fr 1fr; }
-  .filters { grid-template-columns: 1fr; }
-}
-@media (max-width: 520px) {
-  .stats { grid-template-columns: 1fr; }
-  .content { padding: 16px; }
-  .topbar2 { padding: 14px 16px; }
-}
-
-/* ===================== Sidebar (matches dashboard reference) ===================== */
-.sidebar {
-  background:
-    linear-gradient(180deg, rgba(10, 30, 70, 0.96) 0%, rgba(6, 16, 36, 0.98) 100%),
-    url('login-bg.png') center bottom / cover no-repeat;
-  border-right: 1px solid rgba(34, 211, 238, 0.25);
-  box-shadow: inset -1px 0 0 rgba(59, 130, 246, 0.25), 6px 0 24px rgba(0, 0, 0, 0.35);
-}
-.brand { margin-bottom: 18px; }
-.brand h2 { font-size: 1.02rem; font-weight: 700; }
-.nav-item { padding: 12px 14px; }
-.nav-item svg { flex: none; }
-.nav-item.active {
-  background: linear-gradient(90deg, #1d6cf0, #2563eb);
-  box-shadow: 0 0 18px rgba(37, 99, 235, 0.55);
-}
-.nav-bottom { border-top: none; padding-top: 0; }
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(96, 165, 250, 0.45);
-  background: rgba(15, 23, 42, 0.6);
-  color: #e2e8f0;
-  text-decoration: none;
-  font-weight: 600;
-}
-.logout-btn:hover { background: rgba(37, 99, 235, 0.2); color: #fff; }
-
-/* ===================== Dashboard ===================== */
-.welcome {
-  position: relative;
-  overflow: hidden;
-  padding: 26px 30px;
-  border-radius: 14px;
-  border: 1px solid rgba(34, 211, 238, 0.35);
-  background:
-    linear-gradient(90deg, #0b1830 0%, rgba(11, 24, 48, 0.85) 45%, rgba(11, 24, 48, 0.2) 100%),
-    url('login-bg.png') right center / cover no-repeat;
-  box-shadow: 0 0 24px rgba(34, 211, 238, 0.08);
-}
-.welcome::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 18px;
-  bottom: 18px;
-  width: 4px;
-  border-radius: 4px;
-  background: #22d3ee;
-  box-shadow: 0 0 12px #22d3ee;
-}
-.welcome h2 { margin: 0 0 6px; color: #fff; font-size: 1.6rem; }
-.welcome p { margin: 0; color: #cbd5e1; font-size: 1.02rem; }
-
-.dash-grid { display: grid; gap: 18px; }
-.grid-a { grid-template-columns: 1.6fr 1fr; }
-.grid-b { grid-template-columns: 1.4fr 1fr; }
-.panel h2 { display: flex; align-items: center; gap: 10px; }
-.panel h2 svg { color: #60a5fa; }
-.muted { color: #94a3b8; font-weight: 400; }
-.view-all {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: #60a5fa;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.92rem;
-}
-
-/* Bars */
-.bars { display: grid; gap: 14px; }
-.bar-row { display: grid; grid-template-columns: 150px 1fr 48px; gap: 12px; align-items: center; }
-.bar-label { color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar-track { height: 12px; border-radius: 999px; background: #0f1a30; overflow: hidden; }
-.bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #2563eb, #22d3ee);
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.45);
-}
-.bar-value { text-align: right; color: #fff; font-weight: 700; }
-
-/* Donut */
-.donut-wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center; }
-.donut {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-.donut-hole {
-  width: 128px;
-  height: 128px;
-  border-radius: 50%;
-  background: #111c33;
-  display: grid;
-  place-content: center;
-  text-align: center;
-}
-.donut-hole strong { font-size: 1.8rem; color: #fff; line-height: 1; }
-.donut-hole span { color: #94a3b8; font-size: 0.9rem; }
-.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; min-width: 260px; flex: 1; }
-.legend li { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; }
-.swatch { width: 12px; height: 12px; border-radius: 3px; }
-.legend-label { color: #e2e8f0; }
-.legend-value { color: #cbd5e1; font-weight: 600; }
-
-/* Low stock alerts */
-.alert-list { list-style: none; margin: 0; padding: 0; display: grid; }
-.alert-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #1a2843;
-}
-.alert-list li:last-child { border-bottom: none; }
-.alert-item { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.alert-item strong { display: block; color: #fff; }
-.alert-item small { color: #94a3b8; }
-.qty-badge {
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-@media (max-width: 1000px) {
-  .grid-a, .grid-b { grid-template-columns: 1fr; }
-}
-@media (max-width: 520px) {
-  .bar-row { grid-template-columns: 1fr 40px; }
-  .bar-label { grid-column: 1 / -1; }
-  .welcome { padding: 20px; }
-  .welcome h2 { font-size: 1.3rem; }
-}
+<?php
+require __DIR__ . '/auth.php';
+require_login();
+require __DIR__ . '/inventory_lib.php';
+
+// ---------- Handle add / edit / delete ----------
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? 'add';
+    $returnQs = preg_replace('/[\r\n]/', '', $_POST['return_query'] ?? '');
+
+    if ($action === 'delete') {
+        $id = (int)($_POST['id'] ?? 0);
+        $stmt = $conn->prepare("DELETE FROM parts WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+    } else {
+        $name = trim($_POST['name'] ?? '');
+        $category = trim($_POST['category'] ?? '');
+        $price = max(0, (float)($_POST['price'] ?? 0));
+        $qty = max(0, (int)($_POST['quantity'] ?? 0));
+        if ($name !== '') {
+            if ($action === 'update') {
+                $id = (int)($_POST['id'] ?? 0);
+                $stmt = $conn->prepare("UPDATE parts SET name = ?, category = ?, price = ?, quantity = ? WHERE id = ?");
+                $stmt->bind_param("ssdii", $name, $category, $price, $qty, $id);
+            } else {
+                $stmt = $conn->prepare("INSERT INTO parts (name, category, price, quantity) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssdi", $name, $category, $price, $qty);
+            }
+            $stmt->execute();
+        }
+    }
+    header('Location: index.php' . ($returnQs !== '' ? '?' . $returnQs : ''));
+    exit;
+}
+
+// ---------- Read data ----------
+[$where, $types, $params, $filters] = build_filters($_GET);
+$baseParams = array_filter($filters, fn($v) => $v !== '' && $v !== 'all');
+
+$totals = run_query($conn, "SELECT COUNT(*) AS total,
+        COALESCE(SUM(quantity), 0) AS units,
+        SUM(CASE WHEN quantity BETWEEN 1 AND " . LOW_STOCK . " THEN 1 ELSE 0 END) AS low,
+        SUM(CASE WHEN quantity = 0 THEN 1 ELSE 0 END) AS outc
+    FROM parts")->fetch_assoc();
+
+$countRow = run_query($conn, "SELECT COUNT(*) AS c FROM parts $where", $types, $params)->fetch_assoc();
+$matching = (int)$countRow['c'];
+$pages = max(1, (int)ceil($matching / PER_PAGE));
+$page = min($pages, max(1, (int)($_GET['page'] ?? 1)));
+$offset = ($page - 1) * PER_PAGE;
+
+$rows = run_query($conn, "SELECT * FROM parts $where ORDER BY id DESC LIMIT ? OFFSET ?", $types . 'ii', [...$params, PER_PAGE, $offset]);
+$catList = run_query($conn, "SELECT DISTINCT category FROM parts WHERE category <> '' ORDER BY category")->fetch_all(MYSQLI_ASSOC);
+
+$editRow = null;
+if (isset($_GET['edit'])) {
+    $eid = (int)$_GET['edit'];
+    $editRow = run_query($conn, "SELECT * FROM parts WHERE id = ?", "i", [$eid])->fetch_assoc();
+}
+$dialogOpen = $editRow !== null;
+
+$returnQs = http_build_query(array_merge($baseParams, ['page' => $page]));
+function page_url(array $base, array $extra): string {
+    return 'index.php?' . http_build_query(array_merge($base, $extra));
+}
+$lowOrOut = (int)$totals['low'] + (int)$totals['outc'];
+$shownFrom = $matching ? $offset + 1 : 0;
+$shownTo = min($offset + PER_PAGE, $matching);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventory | Computer Parts Inventory</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dash-body">
+<div class="app">
+
+  <?php render_sidebar('inventory'); ?>
+
+  <div class="main">
+    <header class="topbar2">
+      <button class="icon-btn menu-btn" type="button" aria-label="Menu"><?= icon('menu') ?></button>
+      <div class="page-title">
+        <div class="title-row"><?= icon('box', 26) ?><h1>Inventory</h1></div>
+        <p>Manage and track computer parts inventory.</p>
+      </div>
+      <div class="top-right">
+        <div class="bell" title="<?= $lowOrOut ?> items need attention">
+          <?= icon('bell', 22) ?>
+          <?php if ($lowOrOut > 0): ?><span class="dot"><?= $lowOrOut ?></span><?php endif; ?>
+        </div>
+        <details class="userbox">
+          <summary>
+            <span class="avatar"><?= icon('users', 18) ?></span>
+            <span><?= e($_SESSION['username']) ?></span>
+            <?= icon('down', 16) ?>
+          </summary>
+          <a class="userbox-menu" href="logout.php"><?= icon('logout', 16) ?> Log out</a>
+        </details>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="stats">
+        <div class="stat stat-blue">
+          <div class="stat-icon"><?= icon('box', 26) ?></div>
+          <div><small>Total Items</small><strong><?= (int)$totals['total'] ?></strong></div>
+        </div>
+        <div class="stat stat-green">
+          <div class="stat-icon"><?= icon('layers', 26) ?></div>
+          <div><small>Units In Stock</small><strong><?= number_format((int)$totals['units']) ?></strong></div>
+        </div>
+        <div class="stat stat-amber">
+          <div class="stat-icon"><?= icon('alert', 26) ?></div>
+          <div><small>Low Stock</small><strong><?= (int)$totals['low'] ?></strong></div>
+        </div>
+        <div class="stat stat-red">
+          <div class="stat-icon"><?= icon('x', 26) ?></div>
+          <div><small>Out of Stock</small><strong><?= (int)$totals['outc'] ?></strong></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Inventory Items</h2>
+          <div class="actions">
+            <button type="button" id="openAdd" class="btn-d primary"><?= icon('plus', 16) ?> Add Item</button>
+            <a class="btn-d" href="export.php?<?= e(http_build_query($baseParams)) ?>"><?= icon('download', 16) ?> Export CSV</a>
+          </div>
+        </div>
+
+        <form method="get" class="filters">
+          <label class="search-field">
+            <?= icon('search', 18) ?>
+            <input type="search" name="q" placeholder="Search item by name..." value="<?= e($filters['q']) ?>">
+          </label>
+          <select name="cat" onchange="this.form.submit()" aria-label="Category">
+            <option value="">All Categories</option>
+            <?php foreach ($catList as $c): ?>
+              <option value="<?= e($c['category']) ?>" <?= $filters['cat'] === $c['category'] ? 'selected' : '' ?>><?= e($c['category']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <select name="status" onchange="this.form.submit()" aria-label="Stock status">
+            <option value="all" <?= $filters['status'] === 'all' ? 'selected' : '' ?>>All Stock Status</option>
+            <option value="in" <?= $filters['status'] === 'in' ? 'selected' : '' ?>>In Stock</option>
+            <option value="low" <?= $filters['status'] === 'low' ? 'selected' : '' ?>>Low Stock</option>
+            <option value="out" <?= $filters['status'] === 'out' ? 'selected' : '' ?>>Out of Stock</option>
+          </select>
+        </form>
+
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>#</th><th>Item Name</th><th>Category</th><th>Price</th>
+                <th>Quantity</th><th>Stock Status</th><th class="right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php if ($rows->num_rows === 0): ?>
+              <tr><td colspan="7" class="empty">No items match your filters.</td></tr>
+            <?php endif; ?>
+            <?php while ($row = $rows->fetch_assoc()):
+                [$label, $key] = stock_status((int)$row['quantity']);
+                $pill = ['in' => 'pill-in', 'low' => 'pill-low', 'out' => 'pill-out'][$key];
+                $statusIcon = ['in' => 'check', 'low' => 'alert', 'out' => 'x'][$key];
+            ?>
+              <tr>
+                <td><?= (int)$row['id'] ?></td>
+                <td>
+                  <div class="item">
+                    <span class="thumb"><?= icon('box', 20) ?></span>
+                    <strong><?= e($row['name']) ?></strong>
+                  </div>
+                </td>
+                <td><span class="tag <?= tag_class($row['category']) ?>"><?= e($row['category'] !== '' ? $row['category'] : 'Uncategorized') ?></span></td>
+                <td>₱<?= number_format((float)$row['price'], 2) ?></td>
+                <td><?= (int)$row['quantity'] ?></td>
+                <td><span class="pill <?= $pill ?>"><?= icon($statusIcon, 14) ?> <?= $label ?></span></td>
+                <td class="right">
+                  <div class="row-actions">
+                    <a class="icon-btn edit" title="Edit" href="<?= e(page_url($baseParams, ['page' => $page, 'edit' => $row['id']])) ?>"><?= icon('edit', 16) ?></a>
+                    <form method="post" class="inline" onsubmit="return confirm('Delete this item?');">
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
+                      <input type="hidden" name="return_query" value="<?= e($returnQs) ?>">
+                      <button class="icon-btn del" title="Delete" type="submit"><?= icon('trash', 16) ?></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <?php endwhile; ?>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="foot">
+          <span>Showing <?= $shownFrom ?> to <?= $shownTo ?> of <?= $matching ?> items</span>
+          <nav class="pager">
+            <a class="<?= $page <= 1 ? 'disabled' : '' ?>" href="<?= e(page_url($baseParams, ['page' => max(1, $page - 1)])) ?>" aria-label="Previous"><?= icon('left', 16) ?></a>
+            <?php for ($n = 1; $n <= $pages; $n++): ?>
+              <a class="<?= $n === $page ? 'current' : '' ?>" href="<?= e(page_url($baseParams, ['page' => $n])) ?>"><?= $n ?></a>
+            <?php endfor; ?>
+            <a class="<?= $page >= $pages ? 'disabled' : '' ?>" href="<?= e(page_url($baseParams, ['page' => min($pages, $page + 1)])) ?>" aria-label="Next"><?= icon('right', 16) ?></a>
+          </nav>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Add / edit dialog -->
+<dialog id="itemDialog" class="item-dialog" data-open="<?= $dialogOpen ? 1 : 0 ?>">
+  <form method="post" class="dialog-form">
+    <h2><?= $editRow ? 'Edit item' : 'Add item' ?></h2>
+    <input type="hidden" name="action" value="<?= $editRow ? 'update' : 'add' ?>">
+    <?php if ($editRow): ?><input type="hidden" name="id" value="<?= (int)$editRow['id'] ?>"><?php endif; ?>
+    <input type="hidden" name="return_query" value="<?= e($returnQs) ?>">
+    <label>Item name
+      <input name="name" required maxlength="100" value="<?= e($editRow['name'] ?? '') ?>">
+    </label>
+    <label>Category
+      <input name="category" list="catList" maxlength="50" value="<?= e($editRow['category'] ?? '') ?>">
+      <datalist id="catList"><?php foreach ($catList as $c): ?><option value="<?= e($c['category']) ?>"><?php endforeach; ?></datalist>
+    </label>
+    <label>Price (₱)
+      <input name="price" type="number" step="0.01" min="0" required value="<?= e($editRow['price'] ?? '') ?>">
+    </label>
+    <label>Quantity
+      <input name="quantity" type="number" min="0" required value="<?= e($editRow['quantity'] ?? '0') ?>">
+    </label>
+    <div class="dialog-actions">
+      <a class="btn-d" href="<?= e('index.php?' . $returnQs) ?>">Cancel</a>
+      <button class="btn-d primary" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  (function () {
+    var dlg = document.getElementById('itemDialog');
+    document.getElementById('openAdd').addEventListener('click', function () { dlg.showModal(); });
+    if (dlg.dataset.open === '1') dlg.showModal();
+  })();
+</script>
+</body>
+</html>
