@@ -232,6 +232,31 @@ function bell_link(): string {
 function render_sidebar(string $active): void {
     $theme = json_encode(app_theme());
     echo '<script>(function(){var t=' . $theme . ';if(t==="system"){t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}document.body.classList.toggle("theme-light",t==="light");})();</script>';
+        echo <<<'LOGOUT'
+<style>
+#logoutDialog{border:none;border-radius:16px;padding:0;background:transparent}
+#logoutDialog::backdrop{background:rgba(2,6,23,.6)}
+.logout-card{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:16px;padding:24px;width:min(360px,90vw);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.logout-card h3{margin:0 0 8px;font-size:18px}
+.logout-card p{margin:0 0 20px;color:#94a3b8}
+.logout-actions{display:flex;justify-content:flex-end;gap:10px}
+body.theme-light .logout-card{background:#fff;color:#0f172a;border-color:#e2e8f0}
+body.theme-light .logout-card p{color:#64748b}
+</style>
+<dialog id="logoutDialog"><div class="logout-card"><h3>Log out?</h3><p>You will need to log in again to continue.</p><div class="logout-actions"><button type="button" class="btn-d" id="logoutNo">Cancel</button><a class="btn-d primary" href="logout.php">Log out</a></div></div></dialog>
+<script>
+(function(){
+  var d = document.getElementById("logoutDialog");
+  document.addEventListener("click", function(ev){
+    var a = ev.target.closest && ev.target.closest('a[href="logout.php"]');
+    if (!a || a.closest("#logoutDialog")) return;
+    ev.preventDefault();
+    d.showModal();
+  });
+  document.getElementById("logoutNo").addEventListener("click", function(){ d.close(); });
+})();
+</script>
+LOGOUT;
     echo '<aside class="sidebar">'
         . '<div class="brand"><div class="brand-logo">' . icon('box', 52) . '</div>'
         . '<h2>' . e(app_setting('system_name', 'Computer Parts Inventory Management')) . '</h2></div>'
