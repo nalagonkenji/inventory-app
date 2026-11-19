@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $_SESSION['flash'] = 'User deleted.';
+            audit_log($conn, 'delete', 'user', $id, 'Deleted user ID ' . $id);
         }
     } else {
         $id = (int)($_POST['id'] ?? 0);
@@ -58,12 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $stmt->execute();
                 $_SESSION['flash'] = 'User updated.';
+                audit_log($conn, 'update', 'user', $id, 'Edited user "' . $username . '" (role: ' . $role . ', status: ' . $status . ($password !== '' ? ', password changed' : '') . ')');
             } else {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $conn->prepare("INSERT INTO users (username, password_hash, full_name, email, role, status) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->bind_param("ssssss", $username, $hash, $full, $email, $role, $status);
                 $stmt->execute();
                 $_SESSION['flash'] = 'User added.';
+                audit_log($conn, 'create', 'user', (int)$conn->insert_id, 'Added user "' . $username . '" (role: ' . $role . ')');
             }
         }
     }
@@ -73,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$role = in_array($_GET['role'] ?? 'all', array_merge(['all'], USER_ROLES), true) ? ($_GET['role'] ?? 'all') : 'all';
-$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], USER_STATUSES), true) ? ($_GET['status'] ?? 'all') : 'all';
+$role = in_array($_GET['role'] ?? 'all', array_merge(['all'], USER_ROLES), true) ? $_GET['role'] : 'all';
+$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], USER_STATUSES), true) ? $_GET['status'] : 'all';
 
 $where = [];
 $types = '';
@@ -115,7 +118,7 @@ $pages = max(1, (int)ceil($matching / USER_PER_PAGE));
 $page = min($pages, max(1, (int)($_GET['page'] ?? 1)));
 $offset = ($page - 1) * USER_PER_PAGE;
 
-$rows = run_query($conn, "SELECT * FROM users $clause ORDER BY id LIMIT " . (int)USER_PER_PAGE . " OFFSET " . (int)$offset, $types, $params)->fetch_all(MYSQLI_ASSOC);
+$rows = run_query($conn, "SELECT * FROM users $clause ORDER BY id LIMIT ? OFFSET ?", $types . 'ii', [...$params, USER_PER_PAGE, $offset])->fetch_all(MYSQLI_ASSOC);
 
 $editRow = null;
 if (isset($_GET['edit'])) {
