@@ -10,9 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $id = (int)($_POST['id'] ?? 0);
-        $stmt = $conn->prepare("DELETE FROM parts WHERE id = ?");
+        $gone = run_query($conn, "SELECT name FROM parts WHERE id = ?", "i", [$id])->fetch_assoc();         $stmt = $conn->prepare("DELETE FROM parts WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
+        $_SESSION['toast'] = ($gone['name'] ?? 'Item') . ' has been removed.';
     } else {
         $name = trim($_POST['name'] ?? '');
         $category = trim($_POST['category'] ?? '');
@@ -27,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare("INSERT INTO parts (name, category, price, quantity) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param("ssdi", $name, $category, $price, $qty);
             }
-            $stmt->execute();
+                $stmt->execute();
+            $_SESSION['toast'] = $name . ($action === 'update' ? ' has been updated.' : ' has been added.');
         }
     }
     header('Location: index.php' . ($returnQs !== '' ? '?' . $returnQs : ''));
@@ -79,7 +81,7 @@ $shownTo = min($offset + PER_PAGE, $matching);
 <body class="dash-body">
 <div class="app">
 
-  <?php render_sidebar('inventory'); ?>
+    <?php render_sidebar('inventory'); ?>   <?php if (!empty($_SESSION['toast'])): $toastMsg = $_SESSION['toast']; unset($_SESSION['toast']); ?>   <style>     .notice-toast{position:fixed;top:20px;right:20px;z-index:1000;max-width:90vw;background:rgba(22,101,52,.95);color:#dcfce7;border:1px solid #22c55e;padding:14px 18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-weight:600;animation:notice-in .4s ease-out both,notice-out .4s ease-in 1.1s both}     @keyframes notice-in{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}     @keyframes notice-out{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}   </style>   <div class="notice-toast" id="noticeToast" role="status"><?= e($toastMsg) ?></div>   <script>     setTimeout(function () {       var t = document.getElementById('noticeToast');       if (t) t.remove();     }, 1500);   </script>   <?php endif; ?>
 
   <div class="main">
     <header class="topbar2">
