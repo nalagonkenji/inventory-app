@@ -279,4 +279,43 @@ function render_sidebar(string $active): void {
         . '</nav>'
         . '<nav class="nav nav-bottom"><a class="logout-btn" href="logout.php">' . icon('logout') . ' Log Out</a></nav>'
         . '</aside>';
+    echo logout_modal();
+}
+
+// Confirmation dialog shown before logging out (sidebar and user menu).
+function logout_modal(): string {
+    return <<<'HTML'
+<dialog id="logoutDialog" class="logout-dialog">
+  <form method="dialog" class="logout-box">
+    <h2>Log out?</h2>
+    <p>You will need to log in again to open the inventory.</p>
+    <div class="logout-actions">
+      <button class="btn-d" value="cancel" formnovalidate>Cancel</button>
+      <a class="btn-d primary confirm-logout" href="logout.php">Log out</a>
+    </div>
+  </form>
+</dialog>
+<style>
+.logout-dialog{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:14px;padding:0;max-width:360px;width:90vw;box-shadow:0 20px 40px rgba(0,0,0,.45)}
+.logout-dialog::backdrop{background:rgba(2,6,23,.6)}
+.logout-box{padding:22px}
+.logout-box h2{margin:0 0 8px;font-size:20px}
+.logout-box p{margin:0 0 18px;color:#94a3b8}
+.logout-actions{display:flex;justify-content:flex-end;gap:10px}
+</style>
+<script>
+(function () {
+  var dlg = document.getElementById('logoutDialog');
+  if (!dlg) return;
+  document.addEventListener('click', function (ev) {
+    var link = ev.target.closest ? ev.target.closest('a[href="logout.php"]') : null;
+    if (link && !link.closest('#logoutDialog')) {
+      ev.preventDefault();
+      dlg.showModal();
+    }
+  });
+  dlg.addEventListener('click', function (ev) { if (ev.target === dlg) dlg.close(); });
+})();
+</script>
+HTML;
 }
