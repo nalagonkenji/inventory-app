@@ -6,11 +6,11 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $confirm  = $_POST['confirm'] ?? '';
+        $confirm  = $_POST['confirm'] ?? '';     $email    = trim($_POST['email'] ?? '');
 
     if (!preg_match('/^[A-Za-z0-9_]{3,30}$/', $username)) {
         $error = 'Username must be 3 to 30 letters, numbers, or underscores.';
-    } elseif (strlen($password) < 8) {
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 120) {         $error = 'Please enter a valid email address.';     } elseif (strlen($password) < 8) {
         $error = 'Password must be at least 8 characters.';
     } elseif ($password !== $confirm) {
         $error = 'Passwords do not match.';
@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'That username is already taken.';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $insert = $conn->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)");
-            $insert->bind_param("ss", $username, $hash);
+            Replace with $insert = $conn->prepare("INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)");
+            $insert->bind_param("sss", $username, $hash, $email);
             $insert->execute();
             header('Location: login.php?registered=1');
             exit;
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="post" class="auth-form">
       <label class="field">
         <span class="field-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>
-        <input name="username" placeholder="Username (3-30 letters, numbers, _)" required maxlength="30" value="<?= e($_POST['username'] ?? '') ?>">
+        <input name="username" placeholder="Username (3-30 letters, numbers, _)" required maxlength="30" value="<?= e($_POST['username'] ?? '') ?>">       </label>       <label class="field">         <span class="field-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>         <input type="email" name="email" placeholder="Email (for password reset codes)" required maxlength="120" value="<?= e($_POST['email'] ?? '') ?>">
       </label>
       <label class="field">
         <span class="field-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
