@@ -45,6 +45,23 @@ function run_query(mysqli $conn, string $sql, string $types = '', array $params 
     return $stmt->get_result();
 }
 
+// Top-right toast for page messages: green for done, red for a problem. Hides after 1.5 seconds.
+function toast_markup(string $msg, string $type = ''): string {
+    if ($msg === '') return '';
+    if ($type === '') {
+        $type = preg_match('/cannot|must|required|valid|already|incorrect|not enough|choose|too large|stopped|still has|taken|do not match|at least|between|failed/i', $msg) ? 'error' : 'success';
+    }
+    $cls = $type === 'error' ? ' is-error' : '';
+    return '<style>'
+        . '.notice-toast{position:fixed;top:20px;right:20px;z-index:1000;max-width:90vw;background:rgba(22,101,52,.95);color:#dcfce7;border:1px solid #22c55e;padding:14px 18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-weight:600;animation:notice-in .4s ease-out both,notice-out .4s ease-in 1.1s both}'
+        . '.notice-toast.is-error{background:rgba(127,29,29,.95);color:#fee2e2;border-color:#ef4444}'
+        . '@keyframes notice-in{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}'
+        . '@keyframes notice-out{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}'
+        . '</style>'
+        . '<div class="notice-toast' . $cls . '" id="noticeToast" role="status">' . e($msg) . '</div>'
+        . '<script>setTimeout(function(){var t=document.getElementById("noticeToast");if(t)t.remove();},1500);</script>';
+}
+
 // Writes one row to audit_log. Never breaks the page if the table is missing.
 function audit_log(mysqli $conn, string $action, string $entity, int $entityId, string $detail): void {
     try {
