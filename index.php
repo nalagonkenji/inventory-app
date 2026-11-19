@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("i", $id);
         $stmt->execute();
         if ($old) audit_log($conn, 'delete', 'item', $id, 'Deleted item "' . $old['name'] . '"');
+        $_SESSION['toast'] = $old ? '"' . $old['name'] . '" has been deleted from Inventory.' : 'Item deleted.';
     } else {
         $name = trim($_POST['name'] ?? '');
         $category = trim($_POST['category'] ?? '');
@@ -27,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action === 'update') {
                 $id = (int)($_POST['id'] ?? 0);
                 $before = run_query($conn, "SELECT name, category, price, quantity FROM parts WHERE id = ?", "i", [$id])->fetch_assoc();
+                $_SESSION['toast'] = '"' . $name . '" has been updated in Inventory.';
                 $stmt = $conn->prepare("UPDATE parts SET name = ?, category = ?, price = ?, quantity = ?, sku = ?, serial_no = ?, supplier_id = ? WHERE id = ?");
                 $stmt->bind_param("ssdissii", $name, $category, $price, $qty, $sku, $serial, $supplierId, $id);
                 $stmt->execute();
@@ -52,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("ssdissi", $name, $category, $price, $qty, $sku, $serial, $supplierId);
                 $stmt->execute();
                 audit_log($conn, 'create', 'item', (int)$conn->insert_id, 'Added item "' . $name . '" with ' . $qty . ' in stock');
+                $_SESSION['toast'] = '"' . $name . '" has been added to Inventory.';
             }
         }
     }
@@ -106,6 +109,20 @@ $shownTo = min($offset + PER_PAGE, $matching);
 <div class="app">
 
   <?php render_sidebar('inventory'); ?>
+  <?php if (!empty($_SESSION['toast'])): $toastMsg = $_SESSION['toast']; unset($_SESSION['toast']); ?>
+  <style>
+    .notice-toast{position:fixed;top:20px;right:20px;z-index:1000;max-width:90vw;background:rgba(22,101,52,.95);color:#dcfce7;border:1px solid #22c55e;padding:14px 18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-weight:600;animation:notice-in .4s ease-out both,notice-out .4s ease-in 1.1s both}
+    @keyframes notice-in{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @keyframes notice-out{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+  </style>
+  <div class="notice-toast" id="noticeToast" role="status"><?= e($toastMsg) ?></div>
+  <script>
+    setTimeout(function () {
+      var t = document.getElementById('noticeToast');
+      if (t) t.remove();
+    }, 1500);
+  </script>
+  <?php endif; ?>
 
   <div class="main">
     <header class="topbar2">
