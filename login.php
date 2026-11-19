@@ -40,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-page">
-    <video class="bg-video" autoplay muted loop playsinline src="login-bg.mp4"></video>
   <main class="auth-card">
     <div class="brand-logo" aria-hidden="true">
       <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
@@ -52,9 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p class="subtitle">Sign in to manage stock, suppliers, and parts.</p>
     <span class="accent-line"></span>
 
-    <?php if ($notice): ?>
-      <div class="alert alert-success"><?= e($notice) ?></div>
-    <?php endif; ?>
     <?php if ($error): ?>
       <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
@@ -86,5 +82,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       });
     });
   </script>
+  <?php if ($notice): ?>
+  <style>
+    .notice-toast{position:fixed;top:20px;right:20px;z-index:1000;max-width:90vw;background:rgba(22,101,52,.95);color:#dcfce7;border:1px solid #22c55e;padding:14px 18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-weight:600;animation:notice-in .4s ease-out both,notice-out .4s ease-in 1.1s both}
+    @keyframes notice-in{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @keyframes notice-out{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+  </style>
+  <div class="notice-toast" id="noticeToast" role="status"><?= e($notice) ?></div>
+  <script>
+    setTimeout(function () {
+      var t = document.getElementById('noticeToast');
+      if (t) t.remove();
+    }, 1500);
+  </script>
+  <?php endif; ?>
 </body>
 </html>
