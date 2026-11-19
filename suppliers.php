@@ -5,8 +5,8 @@ require __DIR__ . '/inventory_lib.php';
 
 const SUP_PER_PAGE = 10;
 const SUP_STATUSES = ['active', 'pending', 'inactive'];
-const SUP_CATEGORIES = ['Processors', 'Graphics Cards', 'Memory (RAM)', 'Storage (SSD/HDD)',
-    'Motherboards', 'Power Supply', 'Cooling', 'PC Case', 'Peripherals', 'All Parts'];
+// Supplier categories come from the Categories page (active ones only).
+$supCategories = array_column(run_query($conn, "SELECT name FROM categories WHERE status = 'active' ORDER BY name")->fetch_all(MYSQLI_ASSOC), 'name');
 
 // ---------- Create / update / delete ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = substr(trim($_POST['email'] ?? ''), 0, 120);
         $address = substr(trim($_POST['address'] ?? ''), 0, 255);
         $status = in_array($_POST['status'] ?? '', SUP_STATUSES, true) ? $_POST['status'] : 'active';
-        $cats = array_values(array_intersect($_POST['cats'] ?? [], SUP_CATEGORIES));
+        $cats = array_values(array_intersect($_POST['cats'] ?? [], $supCategories));
         $categories = implode(', ', $cats);
 
         if ($name === '') {
@@ -52,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], SUP_STATUSES), true) ? ($_GET['status'] ?? 'all') : 'all';
-$cat = in_array($_GET['cat'] ?? '', SUP_CATEGORIES, true) ? ($_GET['cat'] ?? '') : '';
+$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], SUP_STATUSES), true) ? $_GET['status'] : 'all';
+$cat = in_array($_GET['cat'] ?? '', $supCategories, true) ? $_GET['cat'] : '';
 
 $where = [];
 $types = '';
@@ -193,7 +193,7 @@ function initials(string $name): string {
           </select>
           <select name="cat" onchange="this.form.submit()" aria-label="Category">
             <option value="">All Categories</option>
-            <?php foreach (SUP_CATEGORIES as $c): if ($c === 'All Parts') continue; ?>
+            <?php foreach ($supCategories as $c): ?>
               <option value="<?= e($c) ?>" <?= $cat === $c ? 'selected' : '' ?>><?= e($c) ?></option>
             <?php endforeach; ?>
           </select>
@@ -306,7 +306,7 @@ function initials(string $name): string {
     <fieldset class="cats">
       <legend>Categories supplied</legend>
       <div class="cat-grid">
-        <?php foreach (SUP_CATEGORIES as $c): if ($c === 'All Parts') continue; ?>
+        <?php foreach ($supCategories as $c): ?>
           <label class="check"><input type="checkbox" name="cats[]" value="<?= e($c) ?>" <?= in_array($c, $editCats, true) ? 'checked' : '' ?>> <?= e($c) ?></label>
         <?php endforeach; ?>
       </div>
