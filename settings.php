@@ -50,6 +50,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($section === 'appearance') {
         $theme = in_array($_POST['theme'] ?? '', ['dark', 'light', 'system'], true) ? $_POST['theme'] : 'dark';
         save_setting($conn, 'theme', $theme);
+    } elseif ($section === 'announce') {
+        $msg = trim($_POST['message'] ?? '');
+        if ($msg === '' || mb_strlen($msg) > 255) {
+            $flash = ['type' => 'error', 'msg' => 'An announcement must be 1 to 255 characters.'];
+        } else {
+            $by = $_SESSION['username'];
+            $stmt = $conn->prepare("INSERT INTO announcements (message, posted_by) VALUES (?, ?)");
+            $stmt->bind_param("ss", $msg, $by);
+            $stmt->execute();
+            $flash = ['type' => 'success', 'msg' => 'Announcement posted.'];
+        }
+    } elseif ($section === 'announce_delete') {
+        $id = (int)($_POST['id'] ?? 0);
+        $stmt = $conn->prepare("DELETE FROM announcements WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $flash = ['type' => 'success', 'msg' => 'Announcement removed.'];
     } elseif ($section === 'notifications') {
         foreach (['notif_low_stock', 'notif_inventory', 'notif_transactions', 'notif_announcements'] as $key) {
             save_setting($conn, $key, isset($_POST[$key]) ? '1' : '0');
@@ -97,6 +114,7 @@ foreach (run_query($conn, "SELECT setting_key, setting_value FROM settings")->fe
 }
 $tab = array_key_exists($_GET['tab'] ?? '', SETTINGS_TABS) ? $_GET['tab'] : 'general';
 $flash = $_SESSION['flash'] ?? null;
+$anns = $tab === 'notifications' ? run_query($conn, "SELECT id, message, posted_by, created_at FROM announcements ORDER BY created_at DESC LIMIT 20")->fetch_all(MYSQLI_ASSOC) : [];
 unset($_SESSION['flash']);
 
 $dbVersion = run_query($conn, "SELECT VERSION() AS v")->fetch_assoc()['v'];
@@ -240,7 +258,7 @@ function opt(string $value, string $label, string $current): string {
       <?php elseif ($tab === 'notifications'): ?>
       <section class="panel">
         <div class="panel-head"><h2><?= icon('bell', 20) ?> Notifications</h2></div>
-        <p class="muted">Choose which system notifications you want to receive.</p>
+        <p class="muted">Choose what appears in the bell panel at the top right.</p>
         <form method="post">
           <input type="hidden" name="section" value="notifications">
           <input type="hidden" name="tab" value="notifications">
@@ -252,6 +270,34 @@ function opt(string $value, string $label, string $current): string {
             <button class="btn-d primary" type="submit">Save Changes</button>
           </div>
         </form>
+      </section>
+
+      <section class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2><?= icon('plus', 20) ?> Post an Announcement</h2></div>
+        <form method="post" class="dialog-form" style="margin-bottom:16px">
+          <input type="hidden" name="section" value="announce">
+          <input type="hidden" name="tab" value="notifications">
+          <label>New announcement
+            <input name="message" maxlength="255" required placeholder="Example: Stock count this Friday">
+          </label>
+          <div class="dialog-actions"><button class="btn-d primary" type="submit"><?= icon('plus', 16) ?> Post</button></div>
+        </form>
+        <?php if (!$anns): ?>
+          <p class="muted">No announcements yet.</p>
+        <?php else: foreach ($anns as $a): ?>
+          <div class="setting-row">
+            <span>
+              <strong><?= e($a['message']) ?></strong><br>
+              <small class="muted"><?= e($a['posted_by']) ?> &middot; <?= e(fmt_datetime($a['created_at'])) ?></small>
+            </span>
+            <form method="post" class="inline" onsubmit="return confirm('Remove this announcement?');">
+              <input type="hidden" name="section" value="announce_delete">
+              <input type="hidden" name="tab" value="notifications">
+              <input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
+              <button class="icon-btn del" title="Remove" type="submit"><?= icon('trash', 16) ?></button>
+            </form>
+          </div>
+        <?php endforeach; endif; ?>
       </section>
 
       <?php elseif ($tab === 'security'): ?>
