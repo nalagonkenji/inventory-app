@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Log In | Computer Parts Inventory</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-page">
+<body class="auth-page">   <video class="bg-video" autoplay muted loop playsinline src="login-bg.mp4"></video>
   <main class="auth-card">
     <div class="brand-logo" aria-hidden="true">
       <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
