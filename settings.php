@@ -166,7 +166,7 @@ function opt(string $value, string $label, string $current): string {
 
     <main class="content">
       <?php if ($flash): ?>
-        <div class="alert <?= $flash['type'] === 'error' ? 'alert-error' : 'alert-success' ?>"><?= e($flash['msg']) ?></div>
+        <?= toast_markup($flash['msg'], $flash['type']) ?>
       <?php endif; ?>
 
       <nav class="tabs">
