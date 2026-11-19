@@ -30,6 +30,35 @@ function try_remember_login(mysqli $conn): void {
 
 try_remember_login($conn);
 
+// ---------- CSRF protection ----------
+function csrf_token(): string {
+    if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    return $_SESSION['csrf'];
+}
+
+// Stops a POST that did not come from one of our own forms.
+function csrf_check(): void {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') return;
+    $sent = $_POST['csrf'] ?? '';
+    if (!is_string($sent) || !hash_equals(csrf_token(), $sent)) {
+        http_response_code(403);
+        exit('Your form expired. Go back, refresh the page, and try again.');
+    }
+}
+
+// Adds the hidden token to every POST form in the page output, so pages need no changes.
+function csrf_inject(string $html): string {
+    $field = '<input type="hidden" name="csrf" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+    return preg_replace_callback(
+        '/<form\b[^>]*\bmethod\s*=\s*["\']post["\'][^>]*>/i',
+        fn($m) => $m[0] . $field,
+        $html
+    );
+}
+
+csrf_check();
+ob_start('csrf_inject');
+
 function require_login() {
     if (empty($_SESSION['user_id'])) {
         header('Location: login.php');
