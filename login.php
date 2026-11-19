@@ -2,7 +2,7 @@
 require __DIR__ . '/auth.php';
 
 $error = '';
-$notice = isset($_GET['registered']) ? 'Account created. You can log in now.' : '';
+$notice = isset($_GET['registered']) ? 'Account created. You can log in now.' : (isset($_GET['reset']) ? 'Password updated. You can log in now.' : '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'] ?? 'staff';
+                        if (!empty($_POST['remember'])) {                 $selector = bin2hex(random_bytes(6));                 $validator = bin2hex(random_bytes(32));                 $expires = date('Y-m-d H:i:s', time() + 60 * 60 * 24 * 30);                 $tokenHash = hash('sha256', $validator);                 $uid = (int)$user['id'];                 $tok = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)");                 $tok->bind_param("isss", $uid, $selector, $tokenHash, $expires);                 $tok->execute();                 setcookie('remember', $selector . ':' . $validator, ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);             }
             $touch = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $touch->bind_param("i", $user['id']);
             $touch->execute();
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </label>
       <div class="form-row">
         <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
-        <a href="#" class="forgot" onclick="return false;" title="Contact the administrator to reset your password">Forgot password?</a>
+        <a href="forgot.php" class="forgot">Forgot password?</a>
       </div>
       <button type="submit" class="btn btn-block">Log In</button>
     </form>
