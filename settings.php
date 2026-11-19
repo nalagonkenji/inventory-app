@@ -346,11 +346,20 @@ function opt(string $value, string $label, string $current): string {
       <section class="panel">
         <div class="panel-head"><h2><?= icon('download', 20) ?> Backup &amp; Restore</h2></div>
         <p class="muted">Keep your inventory data safe by creating backups.</p>
-        <div class="actions">
-          <button class="btn-d primary" type="button" disabled><?= icon('download', 16) ?> Create Backup</button>
-          <button class="btn-d" type="button" disabled><?= icon('plus', 16) ?> Restore Backup</button>
-        </div>
-        <p class="muted">Backups are not set up in this version yet.</p>
+        <?php if (($_SESSION['role'] ?? 'staff') !== 'admin'): ?>
+          <p class="muted">Only administrators can create or restore backups.</p>
+        <?php else: ?>
+          <div class="actions">
+            <a class="btn-d primary" href="backup.php?download=1"><?= icon('download', 16) ?> Create Backup</a>
+          </div>
+          <p class="muted">Downloads a .sql file with every table and record.</p>
+          <form method="post" action="backup.php" enctype="multipart/form-data" class="dialog-form" onsubmit="return confirm('Restore this backup? Current data will be replaced.');">
+            <label>Restore from a backup file (.sql)
+              <input type="file" name="dump" accept=".sql" required>
+            </label>
+            <div class="dialog-actions"><button class="btn-d" type="submit"><?= icon('plus', 16) ?> Restore Backup</button></div>
+          </form>
+        <?php endif; ?>
       </section>
       <?php endif; ?>
     </main>
