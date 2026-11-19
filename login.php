@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
+                        $_SESSION['username'] = $user['username'];             $_SESSION['role'] = $user['role'] ?? 'staff';
                         if (!empty($_POST['remember'])) {                 $selector = bin2hex(random_bytes(6));                 $validator = bin2hex(random_bytes(32));                 $expires = date('Y-m-d H:i:s', time() + 60 * 60 * 24 * 30);                 $tokenHash = hash('sha256', $validator);                 $uid = (int)$user['id'];                 $tok = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)");                 $tok->bind_param("isss", $uid, $selector, $tokenHash, $expires);                 $tok->execute();                 setcookie('remember', $selector . ':' . $validator, ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);             }
             $touch = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $touch->bind_param("i", $user['id']);
