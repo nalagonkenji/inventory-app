@@ -1,48 +1,72 @@
 <?php
 require __DIR__ . '/auth.php';
 
+const LOGIN_MAX_FAILS = 5;   // failed tries allowed...
+const LOGIN_WINDOW = 15;     // ...within this many minutes
+
 $error = '';
 $notice = isset($_GET['registered']) ? 'Account created. You can log in now.' : (isset($_GET['reset']) ? 'Password updated. You can log in now.' : '');
+$ip = substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $stmt = $conn->prepare("SELECT id, username, password_hash, role, status FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
+    $lk = $conn->prepare("SELECT COUNT(*) AS c FROM login_attempts WHERE ip = ? AND attempted_at > NOW() - INTERVAL " . LOGIN_WINDOW . " MINUTE");
+    $lk->bind_param("s", $ip);
+    $lk->execute();
+    $fails = (int)$lk->get_result()->fetch_assoc()['c'];
 
-    if ($user && password_verify($password, $user['password_hash'])) {
-        if (($user['status'] ?? 'active') !== 'active') {
-            $error = 'This account is not active. Ask an administrator.';
-        } else {
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'] ?? 'staff';
-            if (!empty($_POST['remember'])) {
-                $selector = bin2hex(random_bytes(9));
-                $validator = bin2hex(random_bytes(32));
-                $tokenHash = hash('sha256', $validator);
-                $rt = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL 30 DAY)");
-                $rt->bind_param("iss", $user['id'], $selector, $tokenHash);
-                $rt->execute();
-                setcookie('remember', $selector . ':' . $validator, [
-                    'expires' => time() + 60 * 60 * 24 * 30,
-                    'path' => '/',
-                    'httponly' => true,
-                    'samesite' => 'Lax',
-                ]);
+    if ($fails >= LOGIN_MAX_FAILS) {
+        $error = 'Too many failed log in attempts. Wait ' . LOGIN_WINDOW . ' minutes and try again.';
+    } else {
+        $stmt = $conn->prepare("SELECT id, username, password_hash, role, status FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            if (($user['status'] ?? 'active') !== 'active') {
+                $error = 'This account is not active. Ask an administrator.';
+            } else {
+                $clear = $conn->prepare("DELETE FROM login_attempts WHERE ip = ?");
+                $clear->bind_param("s", $ip);
+                $clear->execute();
+
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'] ?? 'staff';
+
+                if (!empty($_POST['remember'])) {
+                    $selector = bin2hex(random_bytes(9));
+                    $validator = bin2hex(random_bytes(32));
+                    $tokenHash = hash('sha256', $validator);
+                    $rt = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL 30 DAY)");
+                    $rt->bind_param("iss", $user['id'], $selector, $tokenHash);
+                    $rt->execute();
+                    setcookie('remember', $selector . ':' . $validator, [
+                        'expires' => time() + 60 * 60 * 24 * 30,
+                        'path' => '/',
+                        'httponly' => true,
+                        'samesite' => 'Lax',
+                    ]);
+                }
+
+                $touch = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                $touch->bind_param("i", $user['id']);
+                $touch->execute();
+                header('Location: dashboard.php');
+                exit;
             }
-            $touch = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-            $touch->bind_param("i", $user['id']);
-            $touch->execute();
-            header('Location: dashboard.php');
-            exit;
+        } else {
+            $name = substr($username, 0, 50);
+            $rec = $conn->prepare("INSERT INTO login_attempts (ip, username) VALUES (?, ?)");
+            $rec->bind_param("ss", $ip, $name);
+            $rec->execute();
         }
+        if ($error === '') $error = 'Invalid username or password.';
     }
-    if ($error === '') $error = 'Invalid username or password.';
 }
 ?>
 <!DOCTYPE html>
