@@ -20,12 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $category = trim($_POST['category'] ?? '');
         $price = max(0, (float)($_POST['price'] ?? 0));
         $qty = max(0, (int)($_POST['quantity'] ?? 0));
+        $sku = substr(trim($_POST['sku'] ?? ''), 0, 40);
+        $serial = substr(trim($_POST['serial_no'] ?? ''), 0, 60);
+        $supplierId = (int)($_POST['supplier_id'] ?? 0) ?: null;
         if ($name !== '') {
             if ($action === 'update') {
                 $id = (int)($_POST['id'] ?? 0);
                 $before = run_query($conn, "SELECT name, category, price, quantity FROM parts WHERE id = ?", "i", [$id])->fetch_assoc();
-                $stmt = $conn->prepare("UPDATE parts SET name = ?, category = ?, price = ?, quantity = ? WHERE id = ?");
-                $stmt->bind_param("ssdii", $name, $category, $price, $qty, $id);
+                $stmt = $conn->prepare("UPDATE parts SET name = ?, category = ?, price = ?, quantity = ?, sku = ?, serial_no = ?, supplier_id = ? WHERE id = ?");
+                $stmt->bind_param("ssdissii", $name, $category, $price, $qty, $sku, $serial, $supplierId, $id);
                 $stmt->execute();
                 if ($before) {
                     $changed = [];
@@ -45,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($changed) audit_log($conn, 'update', 'item', $id, 'Edited "' . $name . '": ' . implode(', ', $changed) . ' changed');
                 }
             } else {
-                $stmt = $conn->prepare("INSERT INTO parts (name, category, price, quantity) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssdi", $name, $category, $price, $qty);
+                $stmt = $conn->prepare("INSERT INTO parts (name, category, price, quantity, sku, serial_no, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssdissi", $name, $category, $price, $qty, $sku, $serial, $supplierId);
                 $stmt->execute();
                 audit_log($conn, 'create', 'item', (int)$conn->insert_id, 'Added item "' . $name . '" with ' . $qty . ' in stock');
             }
@@ -74,6 +77,7 @@ $offset = ($page - 1) * PER_PAGE;
 
 $rows = run_query($conn, "SELECT * FROM parts $where ORDER BY id DESC LIMIT ? OFFSET ?", $types . 'ii', [...$params, PER_PAGE, $offset]);
 $catList = run_query($conn, "SELECT DISTINCT category FROM parts WHERE category <> '' ORDER BY category")->fetch_all(MYSQLI_ASSOC);
+$supplierList = run_query($conn, "SELECT id, name FROM suppliers ORDER BY name")->fetch_all(MYSQLI_ASSOC);
 
 $editRow = null;
 if (isset($_GET['edit'])) {
@@ -193,7 +197,12 @@ $shownTo = min($offset + PER_PAGE, $matching);
                 <td>
                   <div class="item">
                     <span class="thumb"><?= icon('box', 20) ?></span>
-                    <strong><?= e($row['name']) ?></strong>
+                    <div>
+                      <strong><?= e($row['name']) ?></strong>
+                      <?php if ($row['sku'] !== '' || $row['serial_no'] !== ''): ?>
+                        <br><small class="muted"><?= $row['sku'] !== '' ? 'SKU: ' . e($row['sku']) : '' ?><?= $row['sku'] !== '' && $row['serial_no'] !== '' ? ' · ' : '' ?><?= $row['serial_no'] !== '' ? 'S/N: ' . e($row['serial_no']) : '' ?></small>
+                      <?php endif; ?>
+                    </div>
                   </div>
                 </td>
                 <td><span class="tag <?= tag_class($row['category']) ?>"><?= e($row['category'] !== '' ? $row['category'] : 'Uncategorized') ?></span></td>
@@ -245,6 +254,20 @@ $shownTo = min($offset + PER_PAGE, $matching);
     <label>Category
       <input name="category" list="catList" maxlength="50" value="<?= e($editRow['category'] ?? '') ?>">
       <datalist id="catList"><?php foreach ($catList as $c): ?><option value="<?= e($c['category']) ?>"><?php endforeach; ?></datalist>
+    </label>
+    <label>SKU
+      <input name="sku" maxlength="40" value="<?= e($editRow['sku'] ?? '') ?>">
+    </label>
+    <label>Serial number
+      <input name="serial_no" maxlength="60" value="<?= e($editRow['serial_no'] ?? '') ?>">
+    </label>
+    <label>Supplier
+      <select name="supplier_id">
+        <option value="">No supplier</option>
+        <?php foreach ($supplierList as $s): ?>
+          <option value="<?= (int)$s['id'] ?>" <?= (int)($editRow['supplier_id'] ?? 0) === (int)$s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option>
+        <?php endforeach; ?>
+      </select>
     </label>
     <label>Price (<?= e(currency_symbol()) ?>)
       <input name="price" type="number" step="0.01" min="0" required value="<?= e($editRow['price'] ?? '') ?>">
