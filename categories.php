@@ -165,7 +165,7 @@ function cat_url(array $base, array $extra): string {
 
     <main class="content">
       <?php if ($flash): ?>
-        <div class="alert alert-success"><?= e($flash) ?></div>
+        <?= toast_markup($flash) ?>
       <?php endif; ?>
 
       <section class="stats stats-3">
