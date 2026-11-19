@@ -83,11 +83,17 @@ $codeStage = ($_SESSION['reset_stage'] ?? '') === 'code';
   <title>Forgot Password | Computer Parts Inventory</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    .auth-form { margin-bottom: 22px; }
+    .auth-form .field { margin-bottom: 16px; }
     .field { position: relative; }
     .field input { padding-right: 130px; }
     .send-inside { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 8px 14px; border: 0; border-radius: 8px; background: linear-gradient(90deg, #22d3ee, #2563eb); color: #fff; font-weight: 600; cursor: pointer; transition: opacity .25s ease; }
     .send-inside:hover { opacity: .85; }
-    .code-hint { margin: -4px 0 12px; font-size: 13px; opacity: .75; }
+    .otp { display: flex; justify-content: center; gap: 10px; margin: 4px 0 14px; }
+    .otp-box { width: 48px; height: 56px; padding: 0; text-align: center; font-family: inherit; font-size: 22px; font-weight: 700; color: inherit; background: rgba(8, 20, 36, .6); border: 1px solid rgba(34, 211, 238, .45); border-radius: 12px; outline: none; transition: border-color .25s ease, box-shadow .25s ease; }
+    .otp-box:focus { border-color: #22d3ee; box-shadow: 0 0 0 3px rgba(34, 211, 238, .25), 0 0 16px rgba(34, 211, 238, .35); }
+    .otp-box:disabled { opacity: .45; cursor: not-allowed; }
+    .code-hint { margin: 0 0 6px; font-size: 13px; opacity: .75; text-align: center; }
     .back-link { display: inline-block; color: inherit; text-decoration: none; transition: color .25s ease; }
     .back-link:hover { color: #67e8f9; }
   </style>
@@ -122,9 +128,11 @@ $codeStage = ($_SESSION['reset_stage'] ?? '') === 'code';
 
     <form method="post" class="auth-form" id="verifyForm">
       <input type="hidden" name="action" value="verify">
-      <div class="field">
-        <span class="field-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg></span>
-        <input id="codeInput" name="code" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" <?= $codeStage ? '' : 'disabled' ?>>
+      <input type="hidden" name="code" id="codeHidden">
+      <div class="otp">
+        <?php for ($i = 0; $i < 6; $i++): ?>
+          <input class="otp-box" type="text" inputmode="numeric" maxlength="1" autocomplete="<?= $i === 0 ? 'one-time-code' : 'off' ?>" aria-label="Code digit <?= $i + 1 ?>" <?= $codeStage ? '' : 'disabled' ?>>
+        <?php endfor; ?>
       </div>
       <p class="code-hint">Type the code from your email. It checks automatically once all 6 digits are entered.</p>
     </form>
@@ -133,13 +141,39 @@ $codeStage = ($_SESSION['reset_stage'] ?? '') === 'code';
   </main>
   <script>
     (function () {
-      var input = document.getElementById('codeInput');
-      if (!input || input.disabled) return;
-      input.addEventListener('input', function () {
-        input.value = input.value.replace(/\D/g, '');
-        if (input.value.length === 6) document.getElementById('verifyForm').submit();
+      var boxes = Array.prototype.slice.call(document.querySelectorAll('.otp-box'));
+      if (!boxes.length || boxes[0].disabled) return;
+      var form = document.getElementById('verifyForm');
+      var hidden = document.getElementById('codeHidden');
+
+      function collect() {
+        var code = boxes.map(function (b) { return b.value; }).join('');
+        hidden.value = code;
+        if (/^\d{6}$/.test(code)) form.submit();
+      }
+
+      boxes.forEach(function (box, i) {
+        box.addEventListener('input', function () {
+          box.value = box.value.replace(/\D/g, '').slice(0, 1);
+          if (box.value && i < 5) boxes[i + 1].focus();
+          collect();
+        });
+        box.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Backspace' && !box.value && i > 0) {
+            boxes[i - 1].value = '';
+            boxes[i - 1].focus();
+          }
+        });
+        box.addEventListener('paste', function (ev) {
+          ev.preventDefault();
+          var text = (ev.clipboardData || window.clipboardData).getData('text');
+          var digits = text.replace(/\D/g, '').slice(0, 6);
+          digits.split('').forEach(function (d, k) { boxes[k].value = d; });
+          boxes[Math.min(digits.length, 5)].focus();
+          collect();
+        });
       });
-      input.focus();
+      boxes[0].focus();
     })();
   </script>
 </body>
