@@ -30,6 +30,77 @@ function try_remember_login(mysqli $conn): void {
 
 try_remember_login($conn);
 
+// ---------- Session timeout (Settings > Security) ----------
+function enforce_session_timeout(mysqli $conn): void {
+    if (empty($_SESSION['user_id'])) return;
+    $minutes = 30;
+    try {
+        $row = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'session_timeout'")->fetch_assoc();
+        if ($row && in_array($row['setting_value'], ['15', '30', '60'], true)) $minutes = (int)$row['setting_value'];
+    } catch (Throwable $t) {
+        // keep the default
+    }
+    if (isset($_SESSION['last_seen']) && time() - (int)$_SESSION['last_seen'] > $minutes * 60) {
+        try {
+            $uid = (int)$_SESSION['user_id'];
+            $d = $conn->prepare("DELETE FROM remember_tokens WHERE user_id = ?");
+            $d->bind_param("i", $uid);
+            $d->execute();
+        } catch (Throwable $t) {
+            // best effort
+        }
+        setcookie('remember', '', ['expires' => time() - 3600, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+        $_SESSION = [];
+        session_destroy();
+        session_start();
+        header('Location: login.php?timeout=1');
+        exit;
+    }
+    $_SESSION['last_seen'] = time();
+}
+enforce_session_timeout($conn);
+
+// ---------- Finishing a login (used by the login and two-factor pages) ----------
+function complete_login(mysqli $conn, array $user, bool $remember): void {
+    session_regenerate_id(true);
+    $uid = (int)$user['id'];
+    $_SESSION['user_id'] = $uid;
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['role'] = $user['role'] ?? 'staff';
+    $_SESSION['last_seen'] = time();
+    if ($remember) {
+        $selector = bin2hex(random_bytes(9));
+        $validator = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $validator);
+        $rt = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL 30 DAY)");
+        $rt->bind_param("iss", $uid, $selector, $tokenHash);
+        $rt->execute();
+        setcookie('remember', $selector . ':' . $validator, ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+    }
+    $touch = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+    $touch->bind_param("i", $uid);
+    $touch->execute();
+    header('Location: dashboard.php');
+    exit;
+}
+
+// ---------- Two-factor sign-in code (Settings > Security) ----------
+function send_login_code(mysqli $conn, array $user): void {
+    $uid = (int)$user['id'];
+    $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $del = $conn->prepare("DELETE FROM two_factor_codes WHERE user_id = ?");
+    $del->bind_param("i", $uid);
+    $del->execute();
+    $hash = hash('sha256', $code);
+    $ins = $conn->prepare("INSERT INTO two_factor_codes (user_id, code_hash, expires_at) VALUES (?, ?, NOW() + INTERVAL 10 MINUTE)");
+    $ins->bind_param("is", $uid, $hash);
+    $ins->execute();
+    $body = "Hello " . $user['username'] . ",\n\n"
+          . "Your sign-in code is: " . $code . "\n\n"
+          . "The code expires in 10 minutes. If you did not try to log in, change your password.\n";
+    @mail($user['email'], 'Inventory sign-in code', $body, "Content-Type: text/plain; charset=UTF-8");
+}
+
 // ---------- CSRF protection ----------
 function csrf_token(): string {
     if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
