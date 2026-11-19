@@ -206,10 +206,27 @@ function bell_link(): string {
         . notif_section('Stock In (last 7 days)', 'notif_inventory', '1', 'notif_stock_in_list')
         . notif_section('Stock Out (last 7 days)', 'notif_transactions', '1', 'notif_stock_out_list')
         . notif_section('System Announcements', 'notif_announcements', '0', 'notif_announce_list');
+    // Clicking the bell marks the current count as seen, so the red number goes away.
+    $js = <<<'JS'
+<script>
+document.querySelectorAll('.notif-menu').forEach(function (m) {
+  var s = m.querySelector('summary.bell');
+  var count = parseInt(s.getAttribute('data-count'), 10) || 0;
+  var seen = 0;
+  try { seen = parseInt(localStorage.getItem('notifSeen'), 10) || 0; } catch (e) {}
+  if (count <= seen) { var d = s.querySelector('.dot'); if (d) d.remove(); }
+  m.addEventListener('toggle', function () {
+    if (!m.open) return;
+    try { localStorage.setItem('notifSeen', String(count)); } catch (e) {}
+    var d = s.querySelector('.dot'); if (d) d.remove();
+  });
+});
+</script>
+JS;
     return '<details class="notif-menu">'
-        . '<summary class="bell" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
+        . '<summary class="bell" data-count="' . $n . '" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
         . '<div class="notif-panel"><div class="notif-head">Notifications</div>' . $panel . '</div>'
-        . '</details>'
+        . '</details>' . $js
         . '<style>'
         . '.notif-menu{position:relative;display:inline-block}'
         . '.notif-menu summary::-webkit-details-marker{display:none}'
