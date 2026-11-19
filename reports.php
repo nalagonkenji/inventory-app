@@ -19,11 +19,15 @@ const REPORT_TYPE_PILLS = [
 ];
 
 // ---------- CSV downloads ----------
-if (isset($_GET['download']) && isset(REPORTS[$_GET['download']])) {
-    $key = $_GET['download'];
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $key . '-' . date('Ymd-His') . '.csv"');
-    $out = fopen('php://output', 'w');
+// The same rows feed the CSV download and the printable (Save as PDF) view.
+$printMode = isset($_GET['print']) && isset(REPORTS[$_GET['print']]);
+if ((isset($_GET['download']) && isset(REPORTS[$_GET['download']])) || $printMode) {
+    $key = $printMode ? $_GET['print'] : $_GET['download'];
+    if (!$printMode) {
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $key . '-' . date('Ymd-His') . '.csv"');
+    }
+    $out = fopen($printMode ? 'php://temp' : 'php://output', 'w+');
 
     if ($key === 'inventory') {
         fputcsv($out, ['ID', 'Name', 'Category', 'Price', 'Quantity', 'Stock Value', 'Status']);
@@ -59,6 +63,55 @@ if (isset($_GET['download']) && isset(REPORTS[$_GET['download']])) {
         while ($r = $rows->fetch_assoc()) {
             fputcsv($out, [$r['id'], $r['name'], $r['contact_person'], $r['contact_number'], $r['email'], $r['address'], $r['categories'], $r['status']]);
         }
+    }
+    if ($printMode) {
+        rewind($out);
+        $printRows = [];
+        while (($line = fgetcsv($out)) !== false) $printRows[] = $line;
+        fclose($out);
+        $printTitle = REPORTS[$key][0];
+        ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?= e($printTitle) ?></title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; margin: 24px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .meta { color: #555; font-size: 13px; margin-bottom: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid #ccc; padding: 7px 9px; text-align: left; }
+    th { background: #eef2f7; }
+    tr:nth-child(even) td { background: #fafafa; }
+    .toolbar { margin-bottom: 18px; }
+    .toolbar button { padding: 8px 14px; font-size: 14px; cursor: pointer; margin-right: 6px; }
+    @media print { .toolbar { display: none; } body { margin: 12mm; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <button type="button" onclick="window.close()">Close</button>
+  </div>
+  <h1><?= e($printTitle) ?></h1>
+  <div class="meta">Computer Parts Inventory &middot; Generated <?= e(date('M d, Y h:i A')) ?> by <?= e($_SESSION['username']) ?> &middot; <?= max(0, count($printRows) - 1) ?> row(s)</div>
+  <table>
+    <thead><tr><?php foreach (($printRows[0] ?? []) as $h): ?><th><?= e($h) ?></th><?php endforeach; ?></tr></thead>
+    <tbody>
+      <?php foreach (array_slice($printRows, 1) as $r): ?>
+        <tr><?php foreach ($r as $cell): ?><td><?= e($cell) ?></td><?php endforeach; ?></tr>
+      <?php endforeach; ?>
+      <?php if (count($printRows) <= 1): ?>
+        <tr><td colspan="<?= max(1, count($printRows[0] ?? [])) ?>">No records.</td></tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
+</body>
+</html>
+<?php
+        exit;
     }
     fclose($out);
     exit;
@@ -327,6 +380,7 @@ foreach (REPORTS as $key => [$name, $type, $desc]) {
                 <td class="right">
                   <div class="row-actions">
                     <a class="btn-d" href="reports.php?download=<?= e($key) ?>"><?= icon('download', 14) ?> CSV</a>
+                    <a class="btn-d" href="reports.php?print=<?= e($key) ?>" target="_blank" rel="noopener"><?= icon('download', 14) ?> PDF</a>
                   </div>
                 </td>
               </tr>
