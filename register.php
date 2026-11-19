@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'That username is already taken.';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            Replace with $insert = $conn->prepare("INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)");
+            $insert = $conn->prepare("INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)");
             $insert->bind_param("sss", $username, $hash, $email);
             $insert->execute();
             header('Location: login.php?registered=1');
