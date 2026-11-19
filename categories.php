@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("i", $id);
                 $stmt->execute();
                 $_SESSION['flash'] = 'Category deleted.';
+                audit_log($conn, 'delete', 'category', $id, 'Deleted category "' . $cat['name'] . '"');
             }
         }
     } else {
@@ -50,12 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $p->execute();
                     $conn->commit();
                     $_SESSION['flash'] = 'Category updated.';
+                    audit_log($conn, 'update', 'category', $id, 'Edited category "' . $name . '" (was "' . $old['name'] . '")');
                 }
             } else {
                 $stmt = $conn->prepare("INSERT INTO categories (name, description, status) VALUES (?, ?, ?)");
                 $stmt->bind_param("sss", $name, $description, $status);
                 $stmt->execute();
                 $_SESSION['flash'] = 'Category added.';
+                audit_log($conn, 'create', 'category', (int)$conn->insert_id, 'Added category "' . $name . '"');
             }
         }
     }
@@ -65,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- Filters ----------
 $q = trim($_GET['q'] ?? '');
-$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], CAT_STATUSES), true) ? ($_GET['status'] ?? 'all') : 'all';
+$status = in_array($_GET['status'] ?? 'all', array_merge(['all'], CAT_STATUSES), true) ? $_GET['status'] : 'all';
 
 $where = [];
 $types = '';
