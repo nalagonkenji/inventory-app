@@ -19,8 +19,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
-                        $_SESSION['username'] = $user['username'];             $_SESSION['role'] = $user['role'] ?? 'staff';
-                        if (!empty($_POST['remember'])) {                 $selector = bin2hex(random_bytes(6));                 $validator = bin2hex(random_bytes(32));                 $expires = date('Y-m-d H:i:s', time() + 60 * 60 * 24 * 30);                 $tokenHash = hash('sha256', $validator);                 $uid = (int)$user['id'];                 $tok = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)");                 $tok->bind_param("isss", $uid, $selector, $tokenHash, $expires);                 $tok->execute();                 setcookie('remember', $selector . ':' . $validator, ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);             }
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'] ?? 'staff';
+            if (!empty($_POST['remember'])) {
+                $selector = bin2hex(random_bytes(9));
+                $validator = bin2hex(random_bytes(32));
+                $tokenHash = hash('sha256', $validator);
+                $rt = $conn->prepare("INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL 30 DAY)");
+                $rt->bind_param("iss", $user['id'], $selector, $tokenHash);
+                $rt->execute();
+                setcookie('remember', $selector . ':' . $validator, [
+                    'expires' => time() + 60 * 60 * 24 * 30,
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Lax',
+                ]);
+            }
             $touch = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $touch->bind_param("i", $user['id']);
             $touch->execute();
@@ -39,7 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Log In | Computer Parts Inventory</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-page">   <video class="bg-video" autoplay muted loop playsinline src="login-bg.mp4"></video>
+<body class="auth-page">
+  <video class="bg-video" autoplay muted loop playsinline src="login-bg.mp4"></video>
   <main class="auth-card">
     <div class="brand-logo" aria-hidden="true">
       <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
