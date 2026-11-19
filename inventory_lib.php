@@ -45,6 +45,19 @@ function run_query(mysqli $conn, string $sql, string $types = '', array $params 
     return $stmt->get_result();
 }
 
+// Writes one row to audit_log. Never breaks the page if the table is missing.
+function audit_log(mysqli $conn, string $action, string $entity, int $entityId, string $detail): void {
+    try {
+        $user = $_SESSION['username'] ?? 'system';
+        $detail = substr($detail, 0, 255);
+        $stmt = $conn->prepare("INSERT INTO audit_log (username, action, entity, entity_id, detail) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssis", $user, $action, $entity, $entityId, $detail);
+        $stmt->execute();
+    } catch (Throwable $e) {
+        // logging is best-effort
+    }
+}
+
 // Feather-style line icons (MIT licensed paths).
 function icon(string $name, int $size = 18): string {
     static $paths = [
@@ -122,18 +135,6 @@ function fmt_datetime(string $value): string {
     return date($date . ' ' . $time, strtotime($value));
 }
 
-// Reads the saved theme (dark, light, or system). Falls back to dark if the settings table is missing.
-function app_theme(): string {
-    global $conn;
-    try {
-        $row = run_query($conn, "SELECT setting_value FROM settings WHERE setting_key = 'theme'")->fetch_assoc();
-    } catch (Throwable $t) {
-        return 'dark';
-    }
-    $v = $row['setting_value'] ?? 'dark';
-    return in_array($v, ['dark', 'light', 'system'], true) ? $v : 'dark';
-}
-
 // Count of items needing attention, based on which notification toggles are on.
 function notification_total(): int {
     global $conn;
@@ -205,10 +206,9 @@ function bell_link(): string {
         . notif_section('Stock In (last 7 days)', 'notif_inventory', '1', 'notif_stock_in_list')
         . notif_section('Stock Out (last 7 days)', 'notif_transactions', '1', 'notif_stock_out_list')
         . notif_section('System Announcements', 'notif_announcements', '0', 'notif_announce_list');
-    return '<details class="notif-menu" data-count="' . $n . '">'
+    return '<details class="notif-menu">'
         . '<summary class="bell" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
         . '<div class="notif-panel"><div class="notif-head">Notifications</div>' . $panel . '</div>'
-        . '<script>(function(){var m=document.currentScript.parentNode;var n=parseInt(m.getAttribute("data-count"),10)||0;var dot=m.querySelector(".dot");var s=0;try{var v=localStorage.getItem("notifSeen");if(v!==null){s=parseInt(v,10)||0;}}catch(e){}if(n<s){s=n;}var show=n-s;if(show<=0){if(dot){dot.remove();dot=null;}}else if(dot){dot.textContent=show;}m.addEventListener("toggle",function(){if(m.open){try{localStorage.setItem("notifSeen",String(n));}catch(e){}if(dot){dot.remove();dot=null;}}});})();</script>'
         . '</details>'
         . '<style>'
         . '.notif-menu{position:relative;display:inline-block}'
@@ -228,35 +228,21 @@ function bell_link(): string {
         . '</style>';
 }
 
-// Shared sidebar used by every page. $active = 'dashboard', 'inventory', 'settings', etc.
+// Shared sidebar used by every page. $active = 'dashboard' or 'inventory'.
+function app_theme(): string {
+    global $conn;
+    try {
+        $row = run_query($conn, "SELECT setting_value FROM settings WHERE setting_key = 'theme'")->fetch_assoc();
+    } catch (Throwable $t) {
+        return 'dark';
+    }
+    $v = $row['setting_value'] ?? 'dark';
+    return in_array($v, ['dark', 'light', 'system'], true) ? $v : 'dark';
+}
+
 function render_sidebar(string $active): void {
     $theme = json_encode(app_theme());
     echo '<script>(function(){var t=' . $theme . ';if(t==="system"){t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}document.body.classList.toggle("theme-light",t==="light");})();</script>';
-        echo <<<'LOGOUT'
-<style>
-#logoutDialog{border:none;border-radius:16px;padding:0;background:transparent}
-#logoutDialog::backdrop{background:rgba(2,6,23,.6)}
-.logout-card{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:16px;padding:24px;width:min(360px,90vw);box-shadow:0 20px 50px rgba(0,0,0,.5)}
-.logout-card h3{margin:0 0 8px;font-size:18px}
-.logout-card p{margin:0 0 20px;color:#94a3b8}
-.logout-actions{display:flex;justify-content:flex-end;gap:10px}
-body.theme-light .logout-card{background:#fff;color:#0f172a;border-color:#e2e8f0}
-body.theme-light .logout-card p{color:#64748b}
-</style>
-<dialog id="logoutDialog"><div class="logout-card"><h3>Log out?</h3><p>You will need to log in again to continue.</p><div class="logout-actions"><button type="button" class="btn-d" id="logoutNo">Cancel</button><a class="btn-d primary" href="logout.php">Log out</a></div></div></dialog>
-<script>
-(function(){
-  var d = document.getElementById("logoutDialog");
-  document.addEventListener("click", function(ev){
-    var a = ev.target.closest && ev.target.closest('a[href="logout.php"]');
-    if (!a || a.closest("#logoutDialog")) return;
-    ev.preventDefault();
-    d.showModal();
-  });
-  document.getElementById("logoutNo").addEventListener("click", function(){ d.close(); });
-})();
-</script>
-LOGOUT;
     echo '<aside class="sidebar">'
         . '<div class="brand"><div class="brand-logo">' . icon('box', 52) . '</div>'
         . '<h2>' . e(app_setting('system_name', 'Computer Parts Inventory Management')) . '</h2></div>'
