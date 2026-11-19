@@ -1,42 +1,79 @@
 <?php
 require __DIR__ . '/auth.php';
 
+if (isset($_GET['restart'])) {
+    unset($_SESSION['reset_user'], $_SESSION['reset_stage'], $_SESSION['reset_verified']);
+    header('Location: forgot.php');
+    exit;
+}
+
 $error = '';
+$info = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $ident = trim($_POST['identifier'] ?? '');
-    if ($ident === '') {
-        $error = 'Enter your username or email.';
-    } else {
-        $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE (username = ? OR email = ?) AND email <> '' AND status = 'active' LIMIT 1");
-        $stmt->bind_param("ss", $ident, $ident);
-        $stmt->execute();
-        $u = $stmt->get_result()->fetch_assoc();
-        if ($u) {
-            $uid = (int)$u['id'];
-            $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $expires = date('Y-m-d H:i:s', time() + 15 * 60);
-            $hash = hash('sha256', $code);
+    $action = $_POST['action'] ?? '';
 
-            $del = $conn->prepare("DELETE FROM password_resets WHERE user_id = ?");
-            $del->bind_param("i", $uid);
-            $del->execute();
+    if ($action === 'send') {
+        unset($_SESSION['reset_user'], $_SESSION['reset_verified']);
+        $ident = trim($_POST['identifier'] ?? '');
+        if ($ident === '') {
+            $error = 'Enter your username or email.';
+        } else {
+            $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE (username = ? OR email = ?) AND email <> '' AND status = 'active' LIMIT 1");
+            $stmt->bind_param("ss", $ident, $ident);
+            $stmt->execute();
+            $u = $stmt->get_result()->fetch_assoc();
+            if ($u) {
+                $uid = (int)$u['id'];
+                $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $hash = hash('sha256', $code);
 
-            $ins = $conn->prepare("INSERT INTO password_resets (user_id, code_hash, expires_at) VALUES (?, ?, ?)");
-            $ins->bind_param("iss", $uid, $hash, $expires);
-            $ins->execute();
+                $del = $conn->prepare("DELETE FROM password_resets WHERE user_id = ?");
+                $del->bind_param("i", $uid);
+                $del->execute();
 
-            $body = "Hello " . $u['username'] . ",\n\n"
-                  . "Your password reset code is: " . $code . "\n\n"
-                  . "The code expires in 15 minutes. If you did not ask to reset your password, you can ignore this email.\n";
-            @mail($u['email'], 'Inventory password reset code', $body, "Content-Type: text/plain; charset=UTF-8");
+                $ins = $conn->prepare("INSERT INTO password_resets (user_id, code_hash, expires_at) VALUES (?, ?, NOW() + INTERVAL 15 MINUTE)");
+                $ins->bind_param("is", $uid, $hash);
+                $ins->execute();
 
-            $_SESSION['reset_user'] = $uid;
+                $body = "Hello " . $u['username'] . ",\n\n"
+                      . "Your password reset code is: " . $code . "\n\n"
+                      . "The code expires in 15 minutes. If you did not ask to reset your password, you can ignore this email.\n";
+                @mail($u['email'], 'Inventory password reset code', $body, "Content-Type: text/plain; charset=UTF-8");
+
+                $_SESSION['reset_user'] = $uid;
+            }
+            // Same answer whether or not the account exists, so usernames cannot be guessed.
+            $_SESSION['reset_stage'] = 'code';
+            $info = 'If an account matches, a code was sent to its email. The code expires in 15 minutes.';
         }
-        // Same answer whether or not the account exists, so usernames cannot be guessed.
-        header('Location: reset.php?sent=1');
-        exit;
+    } elseif ($action === 'verify') {
+        $code = trim($_POST['code'] ?? '');
+        $uid = (int)($_SESSION['reset_user'] ?? 0);
+        $row = null;
+        if ($uid) {
+            $stmt = $conn->prepare("SELECT id, code_hash, attempts FROM password_resets WHERE user_id = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1");
+            $stmt->bind_param("i", $uid);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+        }
+        if (!$row || (int)$row['attempts'] >= 5) {
+            $error = 'That code has expired or was used too many times. Send a new code.';
+        } elseif (!hash_equals($row['code_hash'], hash('sha256', $code))) {
+            $rid = (int)$row['id'];
+            $inc = $conn->prepare("UPDATE password_resets SET attempts = attempts + 1 WHERE id = ?");
+            $inc->bind_param("i", $rid);
+            $inc->execute();
+            $error = 'The code is incorrect.';
+        } else {
+            $_SESSION['reset_verified'] = true;
+            header('Location: reset.php');
+            exit;
+        }
     }
 }
+
+$codeStage = ($_SESSION['reset_stage'] ?? '') === 'code';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,6 +82,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Forgot Password | Computer Parts Inventory</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .field { position: relative; }
+    .field input { padding-right: 130px; }
+    .send-inside { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 8px 14px; border: 0; border-radius: 8px; background: linear-gradient(90deg, #22d3ee, #2563eb); color: #fff; font-weight: 600; cursor: pointer; transition: opacity .25s ease; }
+    .send-inside:hover { opacity: .85; }
+    .code-hint { margin: -4px 0 12px; font-size: 13px; opacity: .75; }
+    .back-link { display: inline-block; color: inherit; text-decoration: none; transition: color .25s ease; }
+    .back-link:hover { color: #67e8f9; }
+  </style>
 </head>
 <body class="auth-page">
   <video class="bg-video" autoplay muted loop playsinline src="login-bg.mp4"></video>
@@ -56,22 +102,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </svg>
     </div>
     <h1>Forgot password</h1>
-    <p class="subtitle">Enter your username or the email on your account. We'll send a 6-digit code.</p>
+    <p class="subtitle">Enter your username or email. We'll send a 6-digit code to the email on your account.</p>
     <span class="accent-line"></span>
 
     <?php if ($error): ?>
       <div class="alert alert-error"><?= e($error) ?></div>
+    <?php elseif ($info): ?>
+      <div class="alert alert-success"><?= e($info) ?></div>
     <?php endif; ?>
 
     <form method="post" class="auth-form">
-      <label class="field">
+      <input type="hidden" name="action" value="send">
+      <div class="field">
         <span class="field-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>
         <input name="identifier" placeholder="Username or email" required value="<?= e($_POST['identifier'] ?? '') ?>">
-      </label>
-      <button type="submit" class="btn btn-block">Send code</button>
+        <button type="submit" class="send-inside">Send code</button>
+      </div>
     </form>
 
-    <p class="auth-switch"><a href="login.php">Back to log in</a></p>
+    <form method="post" class="auth-form" id="verifyForm">
+      <input type="hidden" name="action" value="verify">
+      <div class="field">
+        <span class="field-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg></span>
+        <input id="codeInput" name="code" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" <?= $codeStage ? '' : 'disabled' ?>>
+      </div>
+      <p class="code-hint">Type the code from your email. It checks automatically once all 6 digits are entered.</p>
+    </form>
+
+    <p class="auth-switch"><a class="back-link" href="login.php">&larr; Back to log in</a></p>
   </main>
+  <script>
+    (function () {
+      var input = document.getElementById('codeInput');
+      if (!input || input.disabled) return;
+      input.addEventListener('input', function () {
+        input.value = input.value.replace(/\D/g, '');
+        if (input.value.length === 6) document.getElementById('verifyForm').submit();
+      });
+      input.focus();
+    })();
+  </script>
 </body>
 </html>
