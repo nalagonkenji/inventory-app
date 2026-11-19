@@ -1064,3 +1064,6 @@ body.theme-light .userbox summary { color: #0f172a; }
 
 .bg-video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
 .auth-page{background:#0b1220 !important}
+
+.forgot, .auth-switch a { cursor: pointer; transition: color .25s ease; }
+.forgot:hover, .auth-switch a:hover { color: #67e8f9; }
