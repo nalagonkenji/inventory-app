@@ -322,12 +322,52 @@ function render_sidebar(string $active): void {
         . '<div class="nav-label">Management</div>'
         . '<nav class="nav">'
         . nav_link($active, 'categories', 'categories.php', 'Categories', 'tag')
-        . nav_link($active, 'users', 'users.php', 'Users', 'users')
-        . nav_link($active, 'settings', 'settings.php', 'Settings', 'settings')
+        . admin_nav($active, 'users', 'users.php', 'Users', 'users', 'Users')
+        . admin_nav($active, 'settings', 'settings.php', 'Settings', 'settings', 'Settings')
         . '</nav>'
         . '<nav class="nav nav-bottom"><a class="logout-btn" href="logout.php">' . icon('logout') . ' Log Out</a></nav>'
         . '</aside>';
     echo logout_modal();
+    echo restricted_modal();
+    if (!empty($_SESSION['restricted'])) {
+        $name = $_SESSION['restricted'];
+        unset($_SESSION['restricted']);
+        echo '<script>document.addEventListener("DOMContentLoaded",function(){openRestricted(' . json_encode($name) . ');});</script>';
+    }
+}
+
+// Admin-only links: staff still see them, and clicking one opens the restricted-access notice.
+function admin_nav(string $active, string $key, string $href, string $label, string $icon, string $name): string {
+    $html = nav_link($active, $key, $href, $label, $icon);
+    if (($_SESSION['role'] ?? 'staff') === 'admin') return $html;
+    return preg_replace('/<a\b/', '<a data-admin-only="' . e($name) . '"', $html, 1);
+}
+
+// Warning shown to staff who open an admin-only page.
+function restricted_modal(): string {
+    return <<<'HTML'
+<dialog id="restrictDialog" class="logout-dialog">
+  <form method="dialog" class="logout-box">
+    <h2>Access restricted</h2>
+    <p><b id="restrictName">This page</b> is only available to administrators, so this navigation is restricted for staff accounts. Please ask an administrator if you need access or changes.</p>
+    <div class="logout-actions"><button class="btn-d primary" value="ok">Got it</button></div>
+  </form>
+</dialog>
+<script>
+function openRestricted(name) {
+  var dlg = document.getElementById('restrictDialog');
+  if (!dlg) return;
+  document.getElementById('restrictName').textContent = name;
+  if (!dlg.open) dlg.showModal();
+}
+document.addEventListener('click', function (ev) {
+  var a = ev.target.closest ? ev.target.closest('a[data-admin-only]') : null;
+  if (!a) return;
+  ev.preventDefault();
+  openRestricted(a.getAttribute('data-admin-only'));
+});
+</script>
+HTML;
 }
 
 // Confirmation dialog shown before logging out (sidebar and user menu).
