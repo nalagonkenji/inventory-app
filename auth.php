@@ -141,7 +141,10 @@ function require_login() {
 function require_admin() {
     require_login();
     if (($_SESSION['role'] ?? 'staff') !== 'admin') {
-        http_response_code(403);
-        exit('Only administrators can open this page.');
+        // Send staff back to the dashboard, which shows the restricted-access notice.
+        $file = pathinfo($_SERVER['SCRIPT_NAME'] ?? '', PATHINFO_FILENAME);
+        $_SESSION['restricted'] = $file === 'backup' ? 'Backup & Restore' : ucfirst($file);
+        header('Location: dashboard.php');
+        exit;
     }
 }
