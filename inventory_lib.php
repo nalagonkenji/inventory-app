@@ -154,18 +154,51 @@ function fmt_datetime(string $value): string {
 
 // Count of items needing attention, based on which notification toggles are on.
 function notification_total(): int {
+    return count(notification_items());
+}
+
+// Every bell item in one list, newest first. Only the types switched on in Settings are included.
+function notification_items(): array {
     global $conn;
-    $total = 0;
+    $items = [];
     if (app_setting('notif_low_stock', '1') === '1') {
-        $total += (int)run_query($conn, "SELECT COUNT(*) AS c FROM parts WHERE quantity <= ?", "i", [LOW_STOCK])->fetch_assoc()['c'];
+        $rows = run_query($conn, "SELECT name, quantity FROM parts WHERE quantity <= ? ORDER BY quantity, name LIMIT 20", "i", [LOW_STOCK])->fetch_all(MYSQLI_ASSOC);
+        foreach ($rows as $r) {
+            $items[] = ['time' => PHP_INT_MAX, 'kind' => 'Low stock', 'title' => $r['name'], 'detail' => '', 'amount' => (int)$r['quantity'] . ' left'];
+        }
     }
-    if (app_setting('notif_inventory', '1') === '1') {
-        $total += (int)run_query($conn, "SELECT COUNT(*) AS c FROM transactions WHERE type = 'in' AND created_at >= NOW() - INTERVAL 7 DAY")->fetch_assoc()['c'];
+    foreach (['in' => 'notif_inventory', 'out' => 'notif_transactions'] as $type => $key) {
+        if (app_setting($key, '1') !== '1') continue;
+        $rows = run_query($conn, "SELECT t.quantity, t.performed_by, t.created_at, p.name FROM transactions t JOIN parts p ON p.id = t.part_id WHERE t.type = ? AND t.created_at >= NOW() - INTERVAL 7 DAY ORDER BY t.created_at DESC LIMIT 20", "s", [$type])->fetch_all(MYSQLI_ASSOC);
+        foreach ($rows as $r) {
+            $qty = $type === 'in' ? '+' . (int)$r['quantity'] : '-' . abs((int)$r['quantity']);
+            $items[] = ['time' => strtotime($r['created_at']), 'kind' => $type === 'in' ? 'Stock in' : 'Stock out', 'title' => $r['name'], 'detail' => $r['performed_by'] . ' · ' . fmt_datetime($r['created_at']), 'amount' => $qty];
+        }
     }
-    if (app_setting('notif_transactions', '1') === '1') {
-        $total += (int)run_query($conn, "SELECT COUNT(*) AS c FROM transactions WHERE type = 'out' AND created_at >= NOW() - INTERVAL 7 DAY")->fetch_assoc()['c'];
+    if (app_setting('notif_announcements', '0') === '1') {
+        try {
+            $rows = run_query($conn, "SELECT message, posted_by, created_at FROM announcements ORDER BY created_at DESC LIMIT 10")->fetch_all(MYSQLI_ASSOC);
+        } catch (Throwable $t) {
+            $rows = [];
+        }
+        foreach ($rows as $r) {
+            $items[] = ['time' => strtotime($r['created_at']), 'kind' => 'Announcement', 'title' => $r['message'], 'detail' => $r['posted_by'] . ' · ' . fmt_datetime($r['created_at'])];
+        }
     }
-    return $total;
+    usort($items, fn($a, $b) => $b['time'] <=> $a['time']);
+    return $items;
+}
+
+// One flat list for the bell panel.
+function notif_flat_list(array $items): string {
+    if (!$items) return '<div class="n-empty">No notifications right now.</div>';
+    $html = '<ul class="n-list">';
+    foreach ($items as $it) {
+        $html .= '<li><span><em class="n-kind">' . e($it['kind']) . '</em>' . e($it['title'])
+            . ($it['detail'] !== '' ? '<small>' . e($it['detail']) . '</small>' : '') . '</span>'
+            . (isset($it['amount']) ? '<b>' . e($it['amount']) . '</b>' : '') . '</li>';
+    }
+    return $html . '</ul>';
 }
 
 // Bell panel: a section builder, then one list builder per section.
@@ -219,10 +252,7 @@ function notif_announce_list(): string {
 function bell_link(): string {
     $n = notification_total();
     $dot = $n > 0 ? '<span class="dot">' . $n . '</span>' : '';
-    $panel = notif_section('Low Stock Alerts', 'notif_low_stock', '1', 'notif_low_list')
-        . notif_section('Stock In (last 7 days)', 'notif_inventory', '1', 'notif_stock_in_list')
-        . notif_section('Stock Out (last 7 days)', 'notif_transactions', '1', 'notif_stock_out_list')
-        . notif_section('System Announcements', 'notif_announcements', '0', 'notif_announce_list');
+    $panel = notif_flat_list(notification_items());
     // Clicking the bell marks the current count as seen, so the red number goes away.
     $js = <<<'JS'
 <script>
@@ -230,18 +260,18 @@ document.querySelectorAll('.notif-menu').forEach(function (m) {
   var s = m.querySelector('summary.bell');
   var count = parseInt(s.getAttribute('data-count'), 10) || 0;
   var seen = 0;
-  try { seen = parseInt(localStorage.getItem('notifSeen'), 10) || 0; } catch (e) {}
+  try { seen = parseInt(localStorage.getItem(s.getAttribute('data-key')), 10) || 0; } catch (e) {}
   if (count <= seen) { var d = s.querySelector('.dot'); if (d) d.remove(); }
   m.addEventListener('toggle', function () {
     if (!m.open) return;
-    try { localStorage.setItem('notifSeen', String(count)); } catch (e) {}
+    try { localStorage.setItem(s.getAttribute('data-key'), String(count)); } catch (e) {}
     var d = s.querySelector('.dot'); if (d) d.remove();
   });
 });
 </script>
 JS;
     return '<details class="notif-menu">'
-        . '<summary class="bell" data-count="' . $n . '" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
+        . '<summary class="bell" data-count="' . $n . '" data-key="notifSeen:' . (int)($_SESSION['user_id'] ?? 0) . '" title="Notifications" style="list-style:none;cursor:pointer;color:inherit">' . icon('bell', 22) . $dot . '</summary>'
         . '<div class="notif-panel"><div class="notif-head">Notifications</div>' . $panel . '</div>'
         . '</details>' . $js
         . '<style>'
@@ -256,7 +286,8 @@ JS;
         . '.n-list li span{display:flex;flex-direction:column}'
         . '.n-list li small{color:#94a3b8;font-size:12px}'
         . '.n-list li b{white-space:nowrap}'
-        . '.n-empty{color:#94a3b8}'
+        . '.n-empty{color:#94a3b8;padding:12px 16px}'
+        . '.n-kind{display:block;font-style:normal;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#67e8f9}'
         . 'body.theme-light .notif-panel{background:#fff;color:#0f172a;border-color:#e2e8f0}'
         . 'body.theme-light .notif-head{border-color:#e2e8f0}'
         . '</style>';
